@@ -5,7 +5,7 @@
     "scheme": "mecenate",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "https://raw.githubusercontent.com/maxcan2work/rn-mecenate-test/main/assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "platforms": ["ios", "android"],
