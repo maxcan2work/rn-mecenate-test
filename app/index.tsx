@@ -7,6 +7,7 @@ import {
   View,
   type ListRenderItem,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Post } from '@/api/types';
 import { FeedErrorState } from '@/components/feed/FeedErrorState';
 import { FeedFooter } from '@/components/feed/FeedFooter';
@@ -26,7 +27,9 @@ const FeedScreen = observer(() => {
     data,
     isLoading,
     isError,
+    error,
     isRefetching,
+    isFetching,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
@@ -34,7 +37,7 @@ const FeedScreen = observer(() => {
   } = useFeed({ tier: ui.tierFilter, simulateError: ui.simulateError });
 
   const posts = useMemo<Post[]>(
-    () => data?.pages.flatMap((page) => page.items) ?? [],
+    () => data?.pages.flatMap((page) => page.posts) ?? [],
     [data],
   );
 
@@ -49,40 +52,55 @@ const FeedScreen = observer(() => {
     [],
   );
 
-  if (isLoading) {
-    return (
-      <View style={[styles.flex, { backgroundColor: t.color.bgMuted }]}>
-        <FeedSkeleton />
-      </View>
-    );
-  }
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <View style={styles.flex}>
+          <FeedSkeleton />
+        </View>
+      );
+    }
 
-  if (isError && posts.length === 0) {
+    if (isError && posts.length === 0) {
+      return (
+        <View style={styles.flex}>
+          <FeedErrorState
+            onRetry={() => refetch()}
+            isRetrying={isFetching}
+            detail={error?.message}
+          />
+        </View>
+      );
+    }
+
     return (
-      <View style={[styles.flex, { backgroundColor: t.color.bgMuted }]}>
-        <FeedErrorState onRetry={() => refetch()} />
-      </View>
+      <FlatList
+        data={posts}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        contentContainerStyle={styles.list}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.5}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching && !isFetchingNextPage}
+            onRefresh={() => refetch()}
+            tintColor={t.color.textMuted}
+          />
+        }
+        ListFooterComponent={isFetchingNextPage ? <FeedFooter /> : null}
+      />
     );
-  }
+  };
 
   return (
-    <FlatList
-      data={posts}
-      keyExtractor={keyExtractor}
-      renderItem={renderItem}
-      contentContainerStyle={styles.list}
-      style={{ backgroundColor: t.color.bgMuted }}
-      onEndReached={handleEndReached}
-      onEndReachedThreshold={0.5}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefetching && !isFetchingNextPage}
-          onRefresh={() => refetch()}
-          tintColor={t.color.textMuted}
-        />
-      }
-      ListFooterComponent={isFetchingNextPage ? <FeedFooter /> : null}
-    />
+    <SafeAreaView
+      edges={['top']}
+      style={[styles.flex, { backgroundColor: t.color.bgMuted }]}
+    >
+      <View style={styles.statusSpacer} />
+      {renderContent()}
+    </SafeAreaView>
   );
 });
 
@@ -90,5 +108,6 @@ export default FeedScreen;
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  list: { paddingVertical: 12 },
+  list: { paddingVertical: 0 },
+  statusSpacer: { height: 16 },
 });

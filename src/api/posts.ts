@@ -1,5 +1,7 @@
 import { apiClient } from './client';
 import type {
+  ApiEnvelope,
+  Comment,
   CommentsResponse,
   GetPostsParams,
   LikeResponse,
@@ -7,13 +9,15 @@ import type {
   PostsResponse,
 } from './types';
 
+const unwrap = <T>(resp: { data: ApiEnvelope<T> }): T => resp.data.data;
+
 export const getPosts = async ({
   limit = 20,
   cursor,
   tier,
   simulateError,
 }: GetPostsParams = {}): Promise<PostsResponse> => {
-  const { data } = await apiClient.get<PostsResponse>('/posts', {
+  const resp = await apiClient.get<ApiEnvelope<PostsResponse>>('/posts', {
     params: {
       limit,
       ...(cursor ? { cursor } : {}),
@@ -21,26 +25,26 @@ export const getPosts = async ({
       ...(simulateError ? { simulate_error: true } : {}),
     },
   });
-  return data;
+  return unwrap(resp);
 };
 
 export const getPost = async (id: string): Promise<Post> => {
-  const { data } = await apiClient.get<{ post: Post } | Post>(`/posts/${id}`);
-  return 'post' in (data as Record<string, unknown>)
-    ? (data as { post: Post }).post
-    : (data as Post);
+  const resp = await apiClient.get<ApiEnvelope<{ post: Post }>>(`/posts/${id}`);
+  return unwrap(resp).post;
 };
 
 export const likePost = async (id: string): Promise<LikeResponse> => {
-  const { data } = await apiClient.post<LikeResponse>(`/posts/${id}/like`);
-  return data;
+  const resp = await apiClient.post<ApiEnvelope<LikeResponse>>(
+    `/posts/${id}/like`,
+  );
+  return unwrap(resp);
 };
 
 export const getComments = async (
   postId: string,
   params: { limit?: number; cursor?: string | null } = {},
 ): Promise<CommentsResponse> => {
-  const { data } = await apiClient.get<CommentsResponse>(
+  const resp = await apiClient.get<ApiEnvelope<CommentsResponse>>(
     `/posts/${postId}/comments`,
     {
       params: {
@@ -49,10 +53,13 @@ export const getComments = async (
       },
     },
   );
-  return data;
+  return unwrap(resp);
 };
 
 export const addComment = async (postId: string, text: string) => {
-  const { data } = await apiClient.post(`/posts/${postId}/comments`, { text });
-  return data;
+  const resp = await apiClient.post<ApiEnvelope<{ comment: Comment }>>(
+    `/posts/${postId}/comments`,
+    { text },
+  );
+  return unwrap(resp);
 };

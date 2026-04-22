@@ -22,23 +22,12 @@ const PostCardInner = ({ post }: Props) => {
         styles.card,
         {
           backgroundColor: t.color.surface,
-          borderColor: t.color.border,
-          borderRadius: t.radius.lg,
         },
       ]}
     >
       <View style={styles.header}>
-        <AuthorHeader author={post.author} createdAt={post.createdAt} />
+        <AuthorHeader author={post.author} />
       </View>
-
-      {post.title ? (
-        <Text
-          style={[t.typography.h2, { color: t.color.text }, styles.title]}
-          numberOfLines={2}
-        >
-          {post.title}
-        </Text>
-      ) : null}
 
       {post.coverUrl ? (
         <Image
@@ -49,14 +38,17 @@ const PostCardInner = ({ post }: Props) => {
         />
       ) : null}
 
-      <View style={styles.bodyWrap}>
+      <View style={styles.body}>
+        {post.title ? (
+          <Text style={t.typography.postTitle} numberOfLines={2}>
+            {post.title}
+          </Text>
+        ) : null}
+
         {post.tier === 'paid' ? (
           <PaidPostLock />
         ) : (
-          <Text
-            style={[t.typography.body, { color: t.color.text }]}
-            numberOfLines={4}
-          >
+          <Text style={t.typography.postBody} numberOfLines={2}>
             {post.preview}
           </Text>
         )}
@@ -80,24 +72,33 @@ export const PostCard = memo(PostCardInner);
 
 const styles = StyleSheet.create({
   card: {
-    borderWidth: 1,
-    padding: 16,
-    gap: 12,
-    marginHorizontal: 16,
-    marginBottom: 12,
+    marginBottom: 16,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 12,
+    borderBottomLeftRadius: 16,
+    overflow: 'hidden',
   },
-  header: {},
-  title: { marginTop: 2 },
+  header: {
+    paddingTop: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
   cover: {
     width: '100%',
-    aspectRatio: 16 / 9,
-    borderRadius: 10,
+    aspectRatio: 4 / 5,
   },
-  bodyWrap: {},
+  body: {
+    paddingTop: 8,
+    paddingHorizontal: 16,
+    gap: 8,
+  },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 20,
-    paddingTop: 4,
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 14,
   },
 });

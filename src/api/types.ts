@@ -25,7 +25,7 @@ export interface Post {
 }
 
 export interface PostsResponse {
-  items: Post[];
+  posts: Post[];
   nextCursor: string | null;
   hasMore: boolean;
 }
@@ -44,7 +44,7 @@ export interface Comment {
 }
 
 export interface CommentsResponse {
-  items: Comment[];
+  comments: Comment[];
   nextCursor: string | null;
   hasMore: boolean;
 }
@@ -54,4 +54,14 @@ export interface GetPostsParams {
   cursor?: string | null;
   tier?: Tier;
   simulateError?: boolean;
+}
+
+export interface ApiEnvelope<T> {
+  ok: boolean;
+  data: T;
+}
+
+export interface ApiErrorEnvelope {
+  ok: false;
+  error: { code: string; message: string };
 }

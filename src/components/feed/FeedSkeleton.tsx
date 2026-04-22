@@ -3,63 +3,39 @@ import { useTheme } from '@/theme/ThemeProvider';
 
 const SkeletonCard = () => {
   const t = useTheme();
+  const block = { backgroundColor: t.color.skeleton };
+
   return (
     <View
       style={[
         styles.card,
         {
           backgroundColor: t.color.surface,
-          borderColor: t.color.border,
-          borderRadius: t.radius.lg,
         },
       ]}
     >
-      <View style={styles.headerRow}>
-        <View
-          style={[styles.avatar, { backgroundColor: t.color.skeleton }]}
-        />
-        <View style={{ gap: 6, flex: 1 }}>
-          <View
-            style={[
-              styles.line,
-              { backgroundColor: t.color.skeleton, width: '45%' },
-            ]}
-          />
-          <View
-            style={[
-              styles.line,
-              { backgroundColor: t.color.skeleton, width: '30%', height: 10 },
-            ]}
-          />
-        </View>
+      <View style={styles.header}>
+        <View style={[styles.avatar, block]} />
+        <View style={[styles.nameBar, block]} />
       </View>
-      <View
-        style={[
-          styles.cover,
-          { backgroundColor: t.color.skeleton, borderRadius: t.radius.md },
-        ]}
-      />
-      <View style={{ gap: 8 }}>
-        <View
-          style={[
-            styles.line,
-            { backgroundColor: t.color.skeleton, width: '90%' },
-          ]}
-        />
-        <View
-          style={[
-            styles.line,
-            { backgroundColor: t.color.skeleton, width: '70%' },
-          ]}
-        />
+
+      <View style={[styles.cover, block]} />
+
+      <View style={styles.body}>
+        <View style={[styles.line, block, { width: '45%' }]} />
+        <View style={[styles.line, block, { width: '100%' }]} />
+      </View>
+
+      <View style={styles.footer}>
+        <View style={[styles.chip, block, { width: 68 }]} />
+        <View style={[styles.chip, block, { width: 68 }]} />
       </View>
     </View>
   );
 };
 
 export const FeedSkeleton = () => (
-  <View style={{ paddingTop: 8 }}>
-    <SkeletonCard />
+  <View>
     <SkeletonCard />
     <SkeletonCard />
   </View>
@@ -67,14 +43,56 @@ export const FeedSkeleton = () => (
 
 const styles = StyleSheet.create({
   card: {
-    borderWidth: 1,
-    padding: 16,
-    gap: 12,
-    marginHorizontal: 16,
-    marginBottom: 12,
+    marginBottom: 16,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 12,
+    borderBottomLeftRadius: 16,
+    overflow: 'hidden',
   },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  avatar: { width: 40, height: 40, borderRadius: 20 },
-  line: { height: 12, borderRadius: 4 },
-  cover: { width: '100%', aspectRatio: 16 / 9 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingTop: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  nameBar: {
+    flex: 1,
+    height: 14,
+    maxWidth: 180,
+    borderRadius: 999,
+  },
+  cover: {
+    width: '100%',
+    aspectRatio: 4 / 5,
+  },
+  body: {
+    paddingTop: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    gap: 8,
+  },
+  line: {
+    height: 14,
+    borderRadius: 999,
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 14,
+  },
+  chip: {
+    height: 28,
+    borderRadius: 16,
+  },
 });

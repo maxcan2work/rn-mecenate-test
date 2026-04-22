@@ -4,23 +4,21 @@ import {
   type InfiniteData,
 } from '@tanstack/react-query';
 import { likePost } from '@/api/posts';
-import type { LikeResponse, PostsResponse } from '@/api/types';
+import type { LikeResponse, Post, PostsResponse } from '@/api/types';
 
 type FeedCache = InfiniteData<PostsResponse>;
 
 const patchFeedCache = (
   cache: FeedCache | undefined,
   postId: string,
-  patch: (p: PostsResponse['items'][number]) => PostsResponse['items'][number],
+  patch: (p: Post) => Post,
 ): FeedCache | undefined => {
   if (!cache) return cache;
   return {
     ...cache,
     pages: cache.pages.map((page) => ({
       ...page,
-      items: page.items.map((item) =>
-        item.id === postId ? patch(item) : item,
-      ),
+      posts: page.posts.map((item) => (item.id === postId ? patch(item) : item)),
     })),
   };
 };
@@ -35,7 +33,7 @@ export const useLikePost = (postId: string) => {
 
       const snapshots = qc
         .getQueriesData<FeedCache>({ queryKey: ['posts'] })
-        .map(([key, data]) => ({ key, previous: data }));
+        .map(([, data]) => ({ previous: data }));
 
       qc.setQueriesData<FeedCache>({ queryKey: ['posts'] }, (old) =>
         patchFeedCache(old, postId, (p) => ({
@@ -45,7 +43,7 @@ export const useLikePost = (postId: string) => {
         })),
       );
 
-      return snapshots.map((s) => ({ previous: s.previous }));
+      return snapshots;
     },
     onError: (_err, _vars, context) => {
       if (!context) return;
