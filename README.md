@@ -7,13 +7,14 @@
 Приложение опубликовано через **EAS Update**. Чтобы открыть:
 
 1. Установи [**Expo Go**](https://expo.dev/go) (App Store / Google Play).
-2. Сканируй QR ниже (iOS — камерой, Android — сканером в Expo Go).
+2. Открой [**preview-ссылку**](https://expo.dev/preview/update?message=v1&updateRuntimeVersion=1.0.0&createdAt=2026-04-22T19%3A02%3A29.757Z&slug=exp&projectId=e5931f70-f802-498f-b93d-ef7a5cf30914&group=6a275773-3916-430e-96d0-53256b6d5b36) с телефона — она запустит приложение в Expo Go.
+3. Или сканируй QR (iOS — камерой, Android — сканером внутри Expo Go):
 
 <p align="center">
   <img src="./assets/eas-update-qr.svg" alt="EAS Update QR" width="260" />
 </p>
 
-Либо открой страницу проекта и возьми QR оттуда: <https://expo.dev/accounts/realmizzer/projects/mecenate-app>.
+Страница проекта в Expo: <https://expo.dev/accounts/realmizzer/projects/mecenate-app>.
 
 ## Стек
 
