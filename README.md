@@ -2,6 +2,19 @@
 
 Экран ленты публикаций для платформы Mecenate (аналог Patreon/Boosty). React Native + Expo, iOS и Android.
 
+## Быстрый просмотр (без локальной сборки)
+
+Приложение опубликовано через **EAS Update**. Чтобы открыть:
+
+1. Установи [**Expo Go**](https://expo.dev/go) (App Store / Google Play).
+2. Сканируй QR ниже (iOS — камерой, Android — сканером в Expo Go).
+
+<p align="center">
+  <img src="./assets/eas-update-qr.svg" alt="EAS Update QR" width="260" />
+</p>
+
+Либо открой страницу проекта и возьми QR оттуда: <https://expo.dev/accounts/realmizzer/projects/mecenate-app>.
+
 ## Стек
 
 - **TypeScript** (strict)
