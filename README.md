@@ -7,14 +7,14 @@
 Приложение опубликовано через **EAS Update**. Чтобы открыть:
 
 1. Установи [**Expo Go**](https://expo.dev/go) (App Store / Google Play).
-2. Открой [**preview-ссылку**](https://expo.dev/preview/update?projectId=e5931f70-f802-498f-b93d-ef7a5cf30914&group=761b1d80-3d13-4d8a-956b-540207886142) с телефона — она запустит приложение в Expo Go.
+2. Открой [**preview-ссылку**](https://expo.dev/preview/update?message=v4%3A+hosted+icon+URL&updateRuntimeVersion=1.0.0&createdAt=2026-04-22T19%3A47%3A27.216Z&slug=exp&projectId=e5931f70-f802-498f-b93d-ef7a5cf30914&group=4d2c958a-ff6d-4d92-a4c0-f438d1807671) с телефона — она запустит приложение в Expo Go.
 3. Или сканируй QR (iOS — камерой, Android — сканером внутри Expo Go):
 
 <p align="center">
   <img src="./assets/eas-update-qr.svg" alt="EAS Update QR" width="260" />
 </p>
 
-Страница апдейта в Expo: <https://expo.dev/accounts/realmizzer/projects/mecenate-app/updates/761b1d80-3d13-4d8a-956b-540207886142>.
+Страница апдейта в Expo: <https://expo.dev/accounts/realmizzer/projects/mecenate-app/updates/4d2c958a-ff6d-4d92-a4c0-f438d1807671>.
 
 ## Стек
 
