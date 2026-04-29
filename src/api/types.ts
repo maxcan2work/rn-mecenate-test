@@ -1,4 +1,5 @@
 export type Tier = 'free' | 'paid';
+export type CommentsSort = 'new' | 'old';
 
 export interface Author {
   id: string;
@@ -54,6 +55,12 @@ export interface GetPostsParams {
   cursor?: string | null;
   tier?: Tier;
   simulateError?: boolean;
+}
+
+export interface GetCommentsParams {
+  limit?: number;
+  cursor?: string | null;
+  sort?: CommentsSort;
 }
 
 export interface ApiEnvelope<T> {

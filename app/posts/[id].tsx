@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
+import { useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -12,12 +13,14 @@ import {
   TextInput,
   View,
   type ListRenderItem,
+  type ViewToken,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import type { Comment } from '@/api/types';
+import { commentsQueryKey } from '@/api/queryKeys';
+import type { Comment, CommentsSort } from '@/api/types';
 import { AuthorHeader } from '@/components/feed/AuthorHeader';
 import { FeedErrorState } from '@/components/feed/FeedErrorState';
-import { FeedFooter } from '@/components/feed/FeedFooter';
+import { PaperPlaneIcon } from '@/components/icons/PaperPlaneIcon';
 import { AnimatedLikeButton } from '@/components/post/AnimatedLikeButton';
 import { CommentItem } from '@/components/post/CommentItem';
 import { IconCounter } from '@/components/ui/IconCounter';
@@ -29,14 +32,28 @@ import { useTheme } from '@/theme/ThemeProvider';
 
 const keyExtractor = (comment: Comment) => comment.id;
 
+const getCommentsLabel = (count: number) => {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+
+  if (mod10 === 1 && mod100 !== 11) return 'комментарий';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return 'комментария';
+  }
+  return 'комментариев';
+};
+
 export default function PostDetailScreen() {
   const t = useTheme();
+  const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
   const postId = Array.isArray(id) ? id[0] : id;
   const [text, setText] = useState('');
+  const [commentsSort, setCommentsSort] = useState<CommentsSort>('new');
+  const [isCommentsEndVisible, setIsCommentsEndVisible] = useState(false);
 
   const post = usePost(postId);
-  const comments = useComments(postId);
+  const comments = useComments(postId, commentsSort);
   const addComment = useAddComment(postId);
 
   const commentItems = useMemo(
@@ -44,11 +61,73 @@ export default function PostDetailScreen() {
     [comments.data],
   );
 
-  const handleEndReached = useCallback(() => {
+  const handleToggleCommentsSort = useCallback(() => {
+    const nextSort = commentsSort === 'new' ? 'old' : 'new';
+    queryClient.removeQueries({
+      queryKey: commentsQueryKey(postId, nextSort),
+      exact: true,
+    });
+    setCommentsSort(nextSort);
+  }, [commentsSort, postId, queryClient]);
+
+  const fetchNextComments = useCallback(() => {
     if (comments.hasNextPage && !comments.isFetchingNextPage) {
       comments.fetchNextPage();
     }
-  }, [comments]);
+  }, [comments.fetchNextPage, comments.hasNextPage, comments.isFetchingNextPage]);
+
+  const commentItemsLengthRef = useRef(commentItems.length);
+  const fetchNextCommentsRef = useRef(fetchNextComments);
+  const hasNextCommentsPageRef = useRef(comments.hasNextPage);
+  const isFetchingNextCommentsPageRef = useRef(comments.isFetchingNextPage);
+  commentItemsLengthRef.current = commentItems.length;
+  fetchNextCommentsRef.current = fetchNextComments;
+  hasNextCommentsPageRef.current = comments.hasNextPage;
+  isFetchingNextCommentsPageRef.current = comments.isFetchingNextPage;
+
+  useEffect(() => {
+    const isEmptyEnd =
+      !comments.isLoading &&
+      !comments.isFetchingNextPage &&
+      !comments.hasNextPage &&
+      commentItems.length === 0;
+
+    if (comments.isLoading || comments.hasNextPage || isEmptyEnd) {
+      setIsCommentsEndVisible(isEmptyEnd);
+    }
+  }, [
+    commentItems.length,
+    comments.hasNextPage,
+    comments.isFetchingNextPage,
+    comments.isLoading,
+  ]);
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 1,
+  }).current;
+
+  const handleViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      const lastVisibleIndex = viewableItems.reduce((max, item) => {
+        if (typeof item.index !== 'number') return max;
+        return Math.max(max, item.index);
+      }, -1);
+
+      if (lastVisibleIndex >= commentItemsLengthRef.current - 10) {
+        fetchNextCommentsRef.current();
+      }
+
+      const isEndVisible =
+        commentItemsLengthRef.current > 0 &&
+        lastVisibleIndex >= commentItemsLengthRef.current - 1 &&
+        !hasNextCommentsPageRef.current &&
+        !isFetchingNextCommentsPageRef.current;
+
+      setIsCommentsEndVisible((current) =>
+        current === isEndVisible ? current : isEndVisible,
+      );
+    },
+  ).current;
 
   const handleSubmit = () => {
     const trimmed = text.trim();
@@ -59,8 +138,22 @@ export default function PostDetailScreen() {
   };
 
   const renderItem: ListRenderItem<Comment> = useCallback(
-    ({ item }) => <CommentItem comment={item} />,
+    ({ item }) => (
+      <View style={styles.commentItem}>
+        <CommentItem comment={item} />
+      </View>
+    ),
     [],
+  );
+
+  const renderCommentsFooter = useCallback(
+    () =>
+      comments.isFetchingNextPage ? (
+        <View style={styles.commentsFooter}>
+          <ActivityIndicator color={t.color.textMuted} />
+        </View>
+      ) : null,
+    [comments.isFetchingNextPage, t.color.textMuted],
   );
 
   if (post.isLoading) {
@@ -85,6 +178,9 @@ export default function PostDetailScreen() {
 
   const currentPost = post.data;
   const isPaid = currentPost.tier === 'paid';
+  const commentsTitle = `${currentPost.commentsCount} ${getCommentsLabel(
+    currentPost.commentsCount,
+  )}`;
 
   return (
     <SafeAreaView
@@ -115,10 +211,12 @@ export default function PostDetailScreen() {
           data={commentItems}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
-          onEndReached={handleEndReached}
-          onEndReachedThreshold={0.4}
+          onViewableItemsChanged={handleViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
+          removeClippedSubviews={false}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.list}
+          style={[styles.commentsList, { backgroundColor: t.color.bgMuted }]}
           ListHeaderComponent={
             <View style={[styles.post, { backgroundColor: t.color.surface }]}>
               <View style={styles.postHeader}>
@@ -158,45 +256,58 @@ export default function PostDetailScreen() {
                 <IconCounter kind="comment" count={currentPost.commentsCount} />
               </View>
 
-              <View style={[styles.sectionHead, { borderTopColor: t.color.border }]}>
-                <Text style={[styles.sectionTitle, { color: t.color.text }]}>
-                  Комментарии
-                </Text>
+              <View style={styles.sectionHead}>
+                <Text style={styles.sectionTitle}>{commentsTitle}</Text>
+                <Pressable
+                  onPress={handleToggleCommentsSort}
+                  hitSlop={8}
+                  style={({ pressed }) => pressed && { opacity: 0.6 }}
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.sortText}>
+                    {commentsSort === 'new' ? 'Сначала новые' : 'Сначала старые'}
+                  </Text>
+                </Pressable>
               </View>
             </View>
           }
           ListEmptyComponent={
             comments.isLoading ? (
-              <View style={styles.commentsLoading}>
+              <View style={[styles.commentsLoading, styles.commentsEnd]}>
                 <ActivityIndicator color={t.color.textMuted} />
               </View>
             ) : (
-              <Text style={[styles.empty, { color: t.color.textMuted }]}>
+              <Text
+                style={[
+                  styles.empty,
+                  styles.commentsEnd,
+                  { color: t.color.textMuted },
+                ]}
+              >
                 Комментариев пока нет
               </Text>
             )
           }
-          ListFooterComponent={
-            comments.isFetchingNextPage ? <FeedFooter /> : null
-          }
+          ListFooterComponent={renderCommentsFooter}
         />
 
         <View
           style={[
             styles.composer,
-            { backgroundColor: t.color.surface, borderTopColor: t.color.border },
+            isCommentsEndVisible && styles.composerAtCommentsEnd,
+            { backgroundColor: t.color.surface },
           ]}
         >
           <TextInput
             value={text}
             onChangeText={setText}
-            placeholder="Написать комментарий"
+            placeholder="Ваш комментарий"
             placeholderTextColor={t.color.textMuted}
             multiline
             maxLength={500}
             style={[
               styles.input,
-              { backgroundColor: t.color.chipBg, color: t.color.text },
+              { backgroundColor: t.color.surface, color: t.color.text },
             ]}
           />
           <Pressable
@@ -204,7 +315,6 @@ export default function PostDetailScreen() {
             disabled={!text.trim() || addComment.isPending}
             style={({ pressed }) => [
               styles.send,
-              { backgroundColor: t.color.accent },
               (!text.trim() || addComment.isPending) && { opacity: 0.45 },
               pressed && { opacity: 0.75 },
             ]}
@@ -212,9 +322,9 @@ export default function PostDetailScreen() {
             accessibilityLabel="Отправить комментарий"
           >
             {addComment.isPending ? (
-              <ActivityIndicator color={t.color.textInverse} />
+              <ActivityIndicator color={t.color.accent} />
             ) : (
-              <Text style={styles.sendText}>Отправить</Text>
+              <PaperPlaneIcon size={30} />
             )}
           </Pressable>
         </View>
@@ -254,10 +364,17 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   list: {
-    paddingBottom: 16,
+    paddingBottom: 8,
+  },
+  commentsList: {
+    overflow: 'hidden',
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
   },
   post: {
     overflow: 'hidden',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
   postHeader: {
     paddingHorizontal: 16,
@@ -303,17 +420,42 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   sectionHead: {
-    borderTopWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
   sectionTitle: {
-    fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
+    flex: 1,
+    fontFamily: fontFamily.semibold,
+    fontSize: 15,
+    lineHeight: 20,
+    color: '#68727D',
+  },
+  sortText: {
+    fontFamily: fontFamily.medium,
+    fontSize: 15,
+    lineHeight: 20,
+    color: '#6115CD',
+  },
+  commentItem: {
+    backgroundColor: '#FFFFFF',
+  },
+  commentsEnd: {
+    overflow: 'hidden',
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
   },
   commentsLoading: {
     paddingVertical: 24,
+    backgroundColor: '#FFFFFF',
+  },
+  commentsFooter: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    backgroundColor: '#FFFFFF',
   },
   empty: {
     paddingHorizontal: 16,
@@ -322,21 +464,26 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.regular,
     fontSize: 14,
     lineHeight: 20,
+    backgroundColor: '#FFFFFF',
   },
   composer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 10,
-    borderTopWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 12,
     paddingTop: 10,
     paddingBottom: 10,
+  },
+  composerAtCommentsEnd: {
+    marginTop: 8,
   },
   input: {
     flex: 1,
     minHeight: 42,
     maxHeight: 110,
-    borderRadius: 16,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#EFF2F7',
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontFamily: fontFamily.regular,
@@ -344,17 +491,9 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   send: {
-    minHeight: 42,
-    minWidth: 104,
-    borderRadius: 16,
+    width: 42,
+    height: 42,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 14,
-  },
-  sendText: {
-    color: '#FFFFFF',
-    fontFamily: fontFamily.bold,
-    fontSize: 13,
-    lineHeight: 18,
   },
 });

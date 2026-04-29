@@ -3,6 +3,7 @@ import type {
   ApiEnvelope,
   Comment,
   CommentsResponse,
+  GetCommentsParams,
   GetPostsParams,
   LikeResponse,
   Post,
@@ -42,7 +43,7 @@ export const likePost = async (id: string): Promise<LikeResponse> => {
 
 export const getComments = async (
   postId: string,
-  params: { limit?: number; cursor?: string | null } = {},
+  params: GetCommentsParams = {},
 ): Promise<CommentsResponse> => {
   const resp = await apiClient.get<ApiEnvelope<CommentsResponse>>(
     `/posts/${postId}/comments`,
@@ -50,6 +51,7 @@ export const getComments = async (
       params: {
         limit: params.limit ?? 20,
         ...(params.cursor ? { cursor: params.cursor } : {}),
+        ...(params.sort ? { sort: params.sort } : {}),
       },
     },
   );

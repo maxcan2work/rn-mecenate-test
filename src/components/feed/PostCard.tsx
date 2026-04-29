@@ -90,10 +90,7 @@ export const PostCard = memo(PostCardInner);
 const styles = StyleSheet.create({
   card: {
     marginBottom: 16,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 16,
-    borderBottomRightRadius: 12,
-    borderBottomLeftRadius: 16,
+    borderRadius: 12,
     overflow: 'hidden',
   },
   content: {

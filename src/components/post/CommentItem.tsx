@@ -1,12 +1,35 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { memo, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+} from 'react-native-reanimated';
 import type { Comment } from '@/api/types';
+import { HeartIcon } from '@/components/icons/HeartIcon';
 import { Avatar } from '@/components/ui/Avatar';
 import { fontFamily } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
-import { formatRelativeDate } from '@/utils/formatDate';
 
-export const CommentItem = ({ comment }: { comment: Comment }) => {
+const CommentItemInner = ({ comment }: { comment: Comment }) => {
   const t = useTheme();
+  const [liked, setLiked] = useState(false);
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handleLike = () => {
+    scale.value = withSequence(withSpring(1.14), withSpring(1));
+    setLiked((current) => !current);
+    Haptics.selectionAsync().catch(() => {});
+  };
+
+  const likeColor = liked ? t.color.like : t.color.iconMuted;
+  const likesCount = liked ? 1 : 0;
 
   return (
     <View style={styles.row}>
@@ -16,19 +39,34 @@ export const CommentItem = ({ comment }: { comment: Comment }) => {
         size={36}
       />
       <View style={styles.body}>
-        <View style={styles.meta}>
-          <Text style={[styles.name, { color: t.color.text }]} numberOfLines={1}>
-            {comment.author.displayName}
-          </Text>
-          <Text style={[styles.date, { color: t.color.textMuted }]}>
-            {formatRelativeDate(comment.createdAt)}
-          </Text>
+        <View style={styles.content}>
+          <View style={styles.meta}>
+            <Text style={[styles.name, { color: t.color.text }]} numberOfLines={1}>
+              {comment.author.displayName}
+            </Text>
+          </View>
+          <Text style={[styles.text, { color: t.color.text }]}>{comment.text}</Text>
         </View>
-        <Text style={[styles.text, { color: t.color.text }]}>{comment.text}</Text>
+        <Pressable
+          onPress={handleLike}
+          hitSlop={8}
+          style={({ pressed }) => [styles.like, pressed && { opacity: 0.65 }]}
+          accessibilityRole="button"
+          accessibilityLabel="Лайк комментария"
+        >
+          <Animated.View style={[styles.likeInner, animatedStyle]}>
+            <HeartIcon size={18} color={likeColor} filled={liked} />
+            <Text style={[styles.likeCount, { color: likeColor }]}>
+              {likesCount}
+            </Text>
+          </Animated.View>
+        </Pressable>
       </View>
     </View>
   );
 };
+
+export const CommentItem = memo(CommentItemInner);
 
 const styles = StyleSheet.create({
   row: {
@@ -38,6 +76,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   body: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  content: {
     flex: 1,
     gap: 4,
   },
@@ -52,10 +96,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
   },
-  date: {
-    fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
+  like: {
+    minWidth: 40,
+    alignItems: 'flex-end',
+  },
+  likeInner: {
+    width: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap: 4,
+  },
+  likeCount: {
+    width: 14,
+    fontFamily: fontFamily.bold,
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
   },
   text: {
     fontFamily: fontFamily.regular,

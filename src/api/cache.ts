@@ -64,15 +64,18 @@ export const addCommentEverywhere = (qc: QueryClient, comment: Comment) => {
   const seenIds = qc.getQueryData<string[]>(seenKey) ?? [];
   if (seenIds.includes(comment.id)) return;
 
-  const commentsCache = qc.getQueryData<CommentsCache>(
-    commentsQueryKey(comment.postId),
-  );
-  const alreadyInCache = commentsCache?.pages.some((page) =>
-    page.comments.some((item) => item.id === comment.id),
+  const commentsCaches = qc.getQueriesData<CommentsCache>({
+    queryKey: ['comments', comment.postId],
+  });
+  const alreadyInCache = commentsCaches.some(([, cache]) =>
+    cache?.pages.some((page) =>
+      page.comments.some((item) => item.id === comment.id),
+    ),
   );
 
-  qc.setQueryData<CommentsCache>(commentsQueryKey(comment.postId), (old) =>
-    appendCommentToCache(old, comment),
+  qc.setQueriesData<CommentsCache>(
+    { queryKey: ['comments', comment.postId] },
+    (old) => appendCommentToCache(old, comment),
   );
   qc.setQueryData<string[]>(seenKey, [comment.id, ...seenIds].slice(0, 200));
   if (alreadyInCache) return;
