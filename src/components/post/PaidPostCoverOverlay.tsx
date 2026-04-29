@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   blackout: {
-    backgroundColor: 'rgba(0, 0, 0, 0.28)',
+    backgroundColor: `rgba(0, 0, 0, ${Platform.OS === 'ios' ? 0.6 : 0.3})`,
   },
   iconWrap: {
     width: 42,
