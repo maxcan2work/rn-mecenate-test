@@ -3,7 +3,7 @@ import {
   StyleSheet,
   Text,
   View,
-  type GestureResponderEvent,
+  type GestureResponderEvent, Platform,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MoneyIcon } from '@/components/icons/MoneyIcon';
@@ -25,7 +25,7 @@ export const PaidPostCoverOverlay = () => {
   return (
     <View style={[StyleSheet.absoluteFill, styles.overlay]}>
       <BlurView
-        intensity={10}
+        intensity={Platform.OS === 'ios' ? 50 : 10}
         tint="default"
         experimentalBlurMethod="dimezisBlurView"
         blurReductionFactor={1}
