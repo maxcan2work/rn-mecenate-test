@@ -1,67 +1,54 @@
-import {
-  useMutation,
-  useQueryClient,
-  type InfiniteData,
-} from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
+import { patchPostEverywhere, type FeedCache } from '@/api/cache';
 import { likePost } from '@/api/posts';
-import type { LikeResponse, Post, PostsResponse } from '@/api/types';
-
-type FeedCache = InfiniteData<PostsResponse>;
-
-const patchFeedCache = (
-  cache: FeedCache | undefined,
-  postId: string,
-  patch: (p: Post) => Post,
-): FeedCache | undefined => {
-  if (!cache) return cache;
-  return {
-    ...cache,
-    pages: cache.pages.map((page) => ({
-      ...page,
-      posts: page.posts.map((item) => (item.id === postId ? patch(item) : item)),
-    })),
-  };
-};
+import { postQueryKey } from '@/api/queryKeys';
+import type { LikeResponse, Post } from '@/api/types';
 
 export const useLikePost = (postId: string) => {
   const qc = useQueryClient();
 
-  return useMutation<LikeResponse, Error, void, { previous?: FeedCache }[]>({
+  return useMutation<
+    LikeResponse,
+    Error,
+    void,
+    { feed: { previous?: FeedCache }[]; post?: Post }
+  >({
     mutationFn: () => likePost(postId),
     onMutate: async () => {
       await qc.cancelQueries({ queryKey: ['posts'] });
+      await qc.cancelQueries({ queryKey: postQueryKey(postId) });
 
       const snapshots = qc
         .getQueriesData<FeedCache>({ queryKey: ['posts'] })
         .map(([, data]) => ({ previous: data }));
+      const previousPost = qc.getQueryData<Post>(postQueryKey(postId));
 
-      qc.setQueriesData<FeedCache>({ queryKey: ['posts'] }, (old) =>
-        patchFeedCache(old, postId, (p) => ({
-          ...p,
-          isLiked: !p.isLiked,
-          likesCount: p.likesCount + (p.isLiked ? -1 : 1),
-        })),
-      );
+      patchPostEverywhere(qc, postId, (p) => ({
+        ...p,
+        isLiked: !p.isLiked,
+        likesCount: p.likesCount + (p.isLiked ? -1 : 1),
+      }));
 
-      return snapshots;
+      return { feed: snapshots, post: previousPost };
     },
     onError: (_err, _vars, context) => {
       if (!context) return;
       qc.getQueriesData<FeedCache>({ queryKey: ['posts'] }).forEach(
         ([key], idx) => {
-          const snap = context[idx];
+          const snap = context.feed[idx];
           if (snap?.previous) qc.setQueryData(key, snap.previous);
         },
       );
+      if (context.post) qc.setQueryData(postQueryKey(postId), context.post);
     },
     onSuccess: (data) => {
-      qc.setQueriesData<FeedCache>({ queryKey: ['posts'] }, (old) =>
-        patchFeedCache(old, postId, (p) => ({
-          ...p,
-          isLiked: data.isLiked,
-          likesCount: data.likesCount,
-        })),
-      );
+      Haptics.selectionAsync().catch(() => {});
+      patchPostEverywhere(qc, postId, (p: Post) => ({
+        ...p,
+        isLiked: data.isLiked,
+        likesCount: data.likesCount,
+      }));
     },
   });
 };

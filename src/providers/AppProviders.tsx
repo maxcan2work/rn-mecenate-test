@@ -5,8 +5,14 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { setTokenGetter } from '@/api/client';
 import { RootStore } from '@/stores/RootStore';
 import { StoreContext } from '@/stores/context';
+import { useRealtimePosts } from '@/hooks/useRealtimePosts';
 import { ThemeProvider } from '@/theme/ThemeProvider';
 import { tokens } from '@/theme/tokens';
+
+const RealtimeBridge = ({ token }: { token: string | null }) => {
+  useRealtimePosts(token);
+  return null;
+};
 
 export const AppProviders = ({ children }: { children: ReactNode }) => {
   const store = useMemo(() => new RootStore(), []);
@@ -42,6 +48,7 @@ export const AppProviders = ({ children }: { children: ReactNode }) => {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <StoreContext.Provider value={store}>
+          <RealtimeBridge token={store.auth.token} />
           <ThemeProvider>{children}</ThemeProvider>
         </StoreContext.Provider>
       </QueryClientProvider>

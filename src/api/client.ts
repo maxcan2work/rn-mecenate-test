@@ -3,6 +3,11 @@ import axios from 'axios';
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ?? 'https://k8s.mectest.ru/test-app';
 
+export const WS_BASE_URL = API_BASE_URL.replace(/^http/, 'ws').replace(
+  /\/$/,
+  '',
+);
+
 type TokenGetter = () => string | null;
 
 let getToken: TokenGetter = () => null;

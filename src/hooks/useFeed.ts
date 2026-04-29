@@ -1,9 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
+import { feedQueryKey } from '@/api/queryKeys';
 import { getPosts } from '@/api/posts';
 import type { PostsResponse, Tier } from '@/api/types';
-
-export const feedQueryKey = (tier: Tier | null, simulateError: boolean) =>
-  ['posts', { tier: tier ?? 'all', simulateError }] as const;
 
 interface UseFeedArgs {
   tier: Tier | null;

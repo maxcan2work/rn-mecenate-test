@@ -1,4 +1,5 @@
 import { observer } from 'mobx-react-lite';
+import { router } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import {
   FlatList,
@@ -10,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Post } from '@/api/types';
 import { FeedErrorState } from '@/components/feed/FeedErrorState';
+import { FeedFilterTabs } from '@/components/feed/FeedFilterTabs';
 import { FeedFooter } from '@/components/feed/FeedFooter';
 import { FeedSkeleton } from '@/components/feed/FeedSkeleton';
 import { PostCard } from '@/components/feed/PostCard';
@@ -48,7 +50,17 @@ const FeedScreen = observer(() => {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const renderItem: ListRenderItem<Post> = useCallback(
-    ({ item }) => <PostCard post={item} />,
+    ({ item }) => (
+      <PostCard
+        post={item}
+        onPress={() =>
+          router.push({
+            pathname: '/posts/[id]',
+            params: { id: item.id },
+          } as unknown as Parameters<typeof router.push>[0])
+        }
+      />
+    ),
     [],
   );
 
@@ -88,7 +100,9 @@ const FeedScreen = observer(() => {
             tintColor={t.color.textMuted}
           />
         }
+        ListHeaderComponent={<FeedFilterTabs />}
         ListFooterComponent={isFetchingNextPage ? <FeedFooter /> : null}
+        stickyHeaderIndices={[0]}
       />
     );
   };
