@@ -1,14 +1,21 @@
 import { StyleSheet, View } from 'react-native';
-import { useTheme } from '@/theme/ThemeProvider';
+import { ShimmerPlaceholder } from '@/components/ui/ShimmerPlaceholder';
 
 export const PaidPostTextPlaceholder = () => {
-  const t = useTheme();
-  const block = { backgroundColor: t.color.skeleton };
-
   return (
     <View style={styles.wrap}>
-      <View style={[styles.title, block]} />
-      <View style={[styles.description, block]} />
+      <ShimmerPlaceholder
+        width={164}
+        height={26}
+        borderRadius={22}
+        style={styles.block}
+      />
+      <ShimmerPlaceholder
+        width={361}
+        height={40}
+        borderRadius={22}
+        style={styles.block}
+      />
     </View>
   );
 };
@@ -16,18 +23,9 @@ export const PaidPostTextPlaceholder = () => {
 const styles = StyleSheet.create({
   wrap: {
     gap: 8,
-    paddingTop: 16,
+    paddingTop: 8,
   },
-  title: {
-    width: 164,
+  block: {
     maxWidth: '100%',
-    height: 26,
-    borderRadius: 22,
-  },
-  description: {
-    width: 361,
-    maxWidth: '100%',
-    height: 40,
-    borderRadius: 22,
   },
 });
