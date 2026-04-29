@@ -1,4 +1,4 @@
-import type { InfiniteData, QueryClient } from '@tanstack/react-query';
+import type { InfiniteData, QueryClient, QueryKey } from '@tanstack/react-query';
 import { commentsQueryKey, postQueryKey } from './queryKeys';
 import type { Comment, CommentsResponse, Post, PostsResponse } from './types';
 
@@ -36,6 +36,7 @@ export const patchPostEverywhere = (
 export const appendCommentToCache = (
   cache: CommentsCache | undefined,
   comment: Comment,
+  sort: 'new' | 'old' = 'new',
 ): CommentsCache | undefined => {
   if (!cache) return cache;
 
@@ -47,6 +48,19 @@ export const appendCommentToCache = (
   const [firstPage, ...restPages] = cache.pages;
   if (!firstPage) return cache;
 
+  if (sort === 'old') {
+    const lastPageIndex = cache.pages.length - 1;
+
+    return {
+      ...cache,
+      pages: cache.pages.map((page, index) =>
+        index === lastPageIndex
+          ? { ...page, comments: [...page.comments, comment] }
+          : page,
+      ),
+    };
+  }
+
   return {
     ...cache,
     pages: [
@@ -57,6 +71,20 @@ export const appendCommentToCache = (
       ...restPages,
     ],
   };
+};
+
+const getCommentsSortFromQueryKey = (key: QueryKey) => {
+  const params = key[2];
+  if (
+    params &&
+    typeof params === 'object' &&
+    'sort' in params &&
+    params.sort === 'old'
+  ) {
+    return 'old';
+  }
+
+  return 'new';
 };
 
 export const addCommentEverywhere = (qc: QueryClient, comment: Comment) => {
@@ -73,10 +101,12 @@ export const addCommentEverywhere = (qc: QueryClient, comment: Comment) => {
     ),
   );
 
-  qc.setQueriesData<CommentsCache>(
-    { queryKey: ['comments', comment.postId] },
-    (old) => appendCommentToCache(old, comment),
-  );
+  commentsCaches.forEach(([key]) => {
+    const sort = getCommentsSortFromQueryKey(key);
+    qc.setQueryData<CommentsCache>(key, (old) =>
+      appendCommentToCache(old, comment, sort),
+    );
+  });
   qc.setQueryData<string[]>(seenKey, [comment.id, ...seenIds].slice(0, 200));
   if (alreadyInCache) return;
 

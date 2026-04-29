@@ -42,8 +42,9 @@ export default function PostDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const postId = Array.isArray(id) ? id[0] : id;
   const [text, setText] = useState('');
-  const [commentsSort, setCommentsSort] = useState<CommentsSort>('new');
+  const [commentsSort, setCommentsSort] = useState<CommentsSort>('old');
   const [isCommentsEndVisible, setIsCommentsEndVisible] = useState(false);
+  const [scrollCommentsToTopSignal, setScrollCommentsToTopSignal] = useState(0);
 
   const post = usePost(postId);
   const comments = useComments(postId, commentsSort);
@@ -82,7 +83,12 @@ export default function PostDetailScreen() {
     const trimmed = text.trim();
     if (!trimmed || addComment.isPending) return;
     addComment.mutate(trimmed, {
-      onSuccess: () => setText(''),
+      onSuccess: () => {
+        setText('');
+        if (commentsSort === 'new') {
+          setScrollCommentsToTopSignal((current) => current + 1);
+        }
+      },
     });
   };
 
@@ -144,6 +150,7 @@ export default function PostDetailScreen() {
           onToggleSort={handleToggleCommentsSort}
           onLoadMore={fetchNextComments}
           onEndVisibleChange={handleCommentsEndVisibleChange}
+          scrollToTopSignal={scrollCommentsToTopSignal}
           header={
             <>
               <View style={styles.postHeader}>

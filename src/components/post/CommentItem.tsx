@@ -15,7 +15,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 
 const CommentItemInner = ({ comment }: { comment: Comment }) => {
   const t = useTheme();
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(Boolean(comment.isLiked));
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -29,7 +29,7 @@ const CommentItemInner = ({ comment }: { comment: Comment }) => {
   };
 
   const likeColor = liked ? t.color.like : t.color.iconMuted;
-  const likesCount = liked ? 1 : 0;
+  const likesCount = (comment.likesCount ?? 0) + (liked && !comment.isLiked ? 1 : 0);
 
   return (
     <View style={styles.row}>

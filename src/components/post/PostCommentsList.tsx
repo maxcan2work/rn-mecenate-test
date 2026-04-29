@@ -25,6 +25,7 @@ interface Props {
   onToggleSort: () => void;
   onLoadMore: () => void;
   onEndVisibleChange: (isVisible: boolean) => void;
+  scrollToTopSignal?: number;
 }
 
 const keyExtractor = (comment: Comment) => comment.id;
@@ -40,8 +41,10 @@ export const PostCommentsList = ({
   onToggleSort,
   onLoadMore,
   onEndVisibleChange,
+  scrollToTopSignal = 0,
 }: Props) => {
   const t = useTheme();
+  const listRef = useRef<FlatList<Comment>>(null);
   const commentsLengthRef = useRef(comments.length);
   const onLoadMoreRef = useRef(onLoadMore);
   const hasNextPageRef = useRef(hasNextPage);
@@ -69,6 +72,11 @@ export const PostCommentsList = ({
   const viewabilityConfig = useRef({
     itemVisiblePercentThreshold: 1,
   }).current;
+
+  useEffect(() => {
+    if (scrollToTopSignal === 0) return;
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, [scrollToTopSignal]);
 
   const handleViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -112,6 +120,7 @@ export const PostCommentsList = ({
 
   return (
     <FlatList
+      ref={listRef}
       data={comments}
       keyExtractor={keyExtractor}
       renderItem={renderItem}
@@ -134,7 +143,7 @@ export const PostCommentsList = ({
               accessibilityRole="button"
             >
               <Text style={styles.sortText}>
-                {commentsSort === 'new' ? 'Сначала новые' : 'Сначала старые'}
+                {commentsSort === 'new' ? 'Сначала старые' : 'Сначала новые'}
               </Text>
             </Pressable>
           </View>

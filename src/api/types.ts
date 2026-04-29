@@ -41,6 +41,8 @@ export interface Comment {
   postId: string;
   text: string;
   createdAt: string;
+  likesCount?: number;
+  isLiked?: boolean;
   author: Author;
 }
 

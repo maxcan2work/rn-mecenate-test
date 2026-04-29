@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { CommentIcon } from '@/components/icons/CommentIcon';
 import { HeartIcon } from '@/components/icons/HeartIcon';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -49,9 +50,16 @@ export const IconCounter = ({ kind, count, active = false, onPress, disabled }: 
     return <View style={baseStyle}>{inner}</View>;
   }
 
+  const handlePress = () => {
+    if (kind === 'heart') {
+      Haptics.selectionAsync().catch(() => {});
+    }
+    onPress();
+  };
+
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       disabled={disabled}
       hitSlop={8}
       style={({ pressed }) => [baseStyle, pressed && { opacity: 0.6 }]}
