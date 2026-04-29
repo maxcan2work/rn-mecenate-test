@@ -166,7 +166,6 @@ export default function PostDetailScreen() {
                     style={[styles.cover, { backgroundColor: t.color.skeleton }]}
                     contentFit="cover"
                     transition={200}
-                    blurRadius={isPaid ? 42 : 0}
                   />
                   {isPaid ? <PaidPostCoverOverlay /> : null}
                 </View>

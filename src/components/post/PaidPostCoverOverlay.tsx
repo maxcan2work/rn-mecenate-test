@@ -5,6 +5,7 @@ import {
   View,
   type GestureResponderEvent,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { MoneyIcon } from '@/components/icons/MoneyIcon';
 import { fontFamily } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -23,6 +24,14 @@ export const PaidPostCoverOverlay = () => {
 
   return (
     <View style={[StyleSheet.absoluteFill, styles.overlay]}>
+      <BlurView
+        intensity={10}
+        tint="default"
+        experimentalBlurMethod="dimezisBlurView"
+        blurReductionFactor={1}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={[StyleSheet.absoluteFill, styles.blackout]} />
       <View style={[styles.iconWrap, { backgroundColor: t.color.accent }]}>
         <MoneyIcon size={20} />
       </View>
@@ -50,7 +59,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 28,
-    backgroundColor: 'rgba(0, 0, 0, 0.58)',
+    overflow: 'hidden',
+  },
+  blackout: {
+    backgroundColor: 'rgba(0, 0, 0, 0.28)',
   },
   iconWrap: {
     width: 42,

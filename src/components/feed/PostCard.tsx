@@ -42,7 +42,6 @@ const PostCardInner = ({ post, onPress }: Props) => {
               style={[styles.cover, { backgroundColor: t.color.skeleton }]}
               contentFit="cover"
               transition={200}
-              blurRadius={isPaid ? 42 : 0}
             />
             {isPaid ? <PaidPostCoverOverlay /> : null}
           </View>
