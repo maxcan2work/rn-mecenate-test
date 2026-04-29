@@ -26,7 +26,6 @@ import { useComments } from '@/hooks/useComments';
 import { usePost } from '@/hooks/usePost';
 import { fontFamily } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
-import { formatRelativeDate } from '@/utils/formatDate';
 
 const keyExtractor = (comment: Comment) => comment.id;
 
@@ -124,9 +123,6 @@ export default function PostDetailScreen() {
             <View style={[styles.post, { backgroundColor: t.color.surface }]}>
               <View style={styles.postHeader}>
                 <AuthorHeader author={currentPost.author} />
-                <Text style={[styles.date, { color: t.color.textMuted }]}>
-                  {formatRelativeDate(currentPost.createdAt)}
-                </Text>
               </View>
 
               {currentPost.coverUrl ? (
@@ -267,13 +263,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 12,
-    gap: 8,
-  },
-  date: {
-    fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
-    paddingLeft: 52,
   },
   coverWrap: {
     position: 'relative',

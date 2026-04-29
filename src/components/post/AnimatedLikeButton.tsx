@@ -56,9 +56,8 @@ export const AnimatedLikeButton = ({ postId, count, active }: Props) => {
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: 40,
     borderRadius: 16,
-    paddingHorizontal: 12,
+    padding: 6,
     justifyContent: 'center',
   },
   inner: {
@@ -69,6 +68,7 @@ const styles = StyleSheet.create({
   count: {
     fontFamily: fontFamily.semibold,
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: 18,
+    paddingRight: 4,
   },
 });
