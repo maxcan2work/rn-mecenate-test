@@ -16,6 +16,8 @@ import { AuthorHeader } from '@/components/feed/AuthorHeader';
 import { FeedErrorState } from '@/components/feed/FeedErrorState';
 import { CommentComposer } from '@/components/post/CommentComposer';
 import { AnimatedLikeButton } from '@/components/post/AnimatedLikeButton';
+import { PaidPostCoverOverlay } from '@/components/post/PaidPostCoverOverlay';
+import { PaidPostTextPlaceholder } from '@/components/post/PaidPostTextPlaceholder';
 import { PostCommentsList } from '@/components/post/PostCommentsList';
 import { IconCounter } from '@/components/ui/IconCounter';
 import { KeyboardLiftView } from '@/components/ui/KeyboardLiftView';
@@ -164,31 +166,37 @@ export default function PostDetailScreen() {
                     style={[styles.cover, { backgroundColor: t.color.skeleton }]}
                     contentFit="cover"
                     transition={200}
+                    blurRadius={isPaid ? 42 : 0}
                   />
-                  {isPaid ? (
-                    <View style={[StyleSheet.absoluteFill, styles.paidOverlay]}>
-                      <Text style={styles.paidTitle}>Доступно подписчикам</Text>
-                      <Text style={styles.paidText}>Полный текст скрыт</Text>
-                    </View>
-                  ) : null}
+                  {isPaid ? <PaidPostCoverOverlay /> : null}
                 </View>
               ) : null}
 
               <View style={styles.postBody}>
-                <Text style={t.typography.postTitle}>{currentPost.title}</Text>
-                <Text style={t.typography.postBody}>
-                  {isPaid ? currentPost.preview : currentPost.body || currentPost.preview}
-                </Text>
+                {isPaid ? (
+                  <PaidPostTextPlaceholder />
+                ) : (
+                  <>
+                    <Text style={t.typography.postTitle}>
+                      {currentPost.title}
+                    </Text>
+                    <Text style={t.typography.postBody}>
+                      {currentPost.body || currentPost.preview}
+                    </Text>
+                  </>
+                )}
               </View>
 
-              <View style={styles.actions}>
-                <AnimatedLikeButton
-                  postId={currentPost.id}
-                  count={currentPost.likesCount}
-                  active={currentPost.isLiked}
-                />
-                <IconCounter kind="comment" count={currentPost.commentsCount} />
-              </View>
+              {!isPaid ? (
+                <View style={styles.actions}>
+                  <AnimatedLikeButton
+                    postId={currentPost.id}
+                    count={currentPost.likesCount}
+                    active={currentPost.isLiked}
+                  />
+                  <IconCounter kind="comment" count={currentPost.commentsCount} />
+                </View>
+              ) : null}
             </>
           }
         />
@@ -248,24 +256,6 @@ const styles = StyleSheet.create({
   cover: {
     width: '100%',
     aspectRatio: 4 / 5,
-  },
-  paidOverlay: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(15, 17, 21, 0.72)',
-    gap: 4,
-  },
-  paidTitle: {
-    fontFamily: fontFamily.bold,
-    fontSize: 17,
-    lineHeight: 24,
-    color: '#FFFFFF',
-  },
-  paidText: {
-    fontFamily: fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
-    color: 'rgba(255,255,255,0.82)',
   },
   postBody: {
     paddingHorizontal: 16,

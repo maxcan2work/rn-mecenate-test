@@ -6,7 +6,8 @@ import { useLikePost } from '@/hooks/useLikePost';
 import { useTheme } from '@/theme/ThemeProvider';
 import { AuthorHeader } from './AuthorHeader';
 import { IconCounter } from '@/components/ui/IconCounter';
-import { fontFamily } from '@/theme/tokens';
+import { PaidPostCoverOverlay } from '@/components/post/PaidPostCoverOverlay';
+import { PaidPostTextPlaceholder } from '@/components/post/PaidPostTextPlaceholder';
 
 interface Props {
   post: Post;
@@ -34,53 +35,49 @@ const PostCardInner = ({ post, onPress }: Props) => {
 
       <View style={styles.content}>
         {post.coverUrl ? (
-          <Image
-            source={{ uri: post.coverUrl }}
-            style={[styles.cover, { backgroundColor: t.color.skeleton }]}
-            contentFit="cover"
-            transition={200}
-          />
+          <View>
+            <Image
+              source={{ uri: post.coverUrl }}
+              style={[styles.cover, { backgroundColor: t.color.skeleton }]}
+              contentFit="cover"
+              transition={200}
+              blurRadius={isPaid ? 42 : 0}
+            />
+            {isPaid ? <PaidPostCoverOverlay /> : null}
+          </View>
         ) : null}
 
         <View style={styles.body}>
-          {post.title ? (
-            <Text style={t.typography.postTitle} numberOfLines={2}>
-              {post.title}
-            </Text>
-          ) : null}
+          {isPaid ? (
+            <PaidPostTextPlaceholder />
+          ) : (
+            <>
+              {post.title ? (
+                <Text style={t.typography.postTitle} numberOfLines={2}>
+                  {post.title}
+                </Text>
+              ) : null}
 
-          <Text style={t.typography.postBody} numberOfLines={2}>
-            {post.preview}
-          </Text>
-
+              <Text style={t.typography.postBody} numberOfLines={2}>
+                {post.preview}
+              </Text>
+            </>
+          )}
         </View>
-
-        {isPaid ? (
-          <View
-            style={[
-              StyleSheet.absoluteFill,
-              styles.blackout,
-              { backgroundColor: t.color.overlay },
-            ]}
-          >
-            <View style={styles.lockBadge}>
-              <Text style={styles.lockTitle}>Доступно подписчикам</Text>
-              <Text style={styles.lockText}>Откройте пост после подписки</Text>
-            </View>
-          </View>
-        ) : null}
       </View>
 
-      <View style={styles.footer}>
-        <IconCounter
-          kind="heart"
-          count={post.likesCount}
-          active={post.isLiked}
-          onPress={() => like.mutate()}
-          disabled={like.isPending}
-        />
-        <IconCounter kind="comment" count={post.commentsCount} />
-      </View>
+      {!isPaid ? (
+        <View style={styles.footer}>
+          <IconCounter
+            kind="heart"
+            count={post.likesCount}
+            active={post.isLiked}
+            onPress={() => like.mutate()}
+            disabled={like.isPending}
+          />
+          <IconCounter kind="comment" count={post.commentsCount} />
+        </View>
+      ) : null}
     </Pressable>
   );
 };
@@ -111,27 +108,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 8,
     gap: 8,
-  },
-  blackout: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-  },
-  lockBadge: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  lockTitle: {
-    fontFamily: fontFamily.bold,
-    fontSize: 15,
-    lineHeight: 20,
-    color: '#FFFFFF',
-  },
-  lockText: {
-    fontFamily: fontFamily.medium,
-    fontSize: 12,
-    lineHeight: 16,
-    color: 'rgba(255,255,255,0.82)',
   },
   footer: {
     flexDirection: 'row',
