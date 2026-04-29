@@ -100,9 +100,7 @@ const FeedScreen = observer(() => {
             tintColor={t.color.textMuted}
           />
         }
-        ListHeaderComponent={<FeedFilterTabs />}
         ListFooterComponent={isFetchingNextPage ? <FeedFooter /> : null}
-        stickyHeaderIndices={[0]}
       />
     );
   };
@@ -113,6 +111,7 @@ const FeedScreen = observer(() => {
       style={[styles.flex, { backgroundColor: t.color.bgMuted }]}
     >
       <View style={styles.statusSpacer} />
+      <FeedFilterTabs />
       {renderContent()}
     </SafeAreaView>
   );
