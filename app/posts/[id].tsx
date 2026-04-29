@@ -1,36 +1,29 @@
 import { Image } from 'expo-image';
 import { useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
-  type ListRenderItem,
-  type ViewToken,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { commentsQueryKey } from '@/api/queryKeys';
-import type { Comment, CommentsSort } from '@/api/types';
+import type { CommentsSort } from '@/api/types';
 import { AuthorHeader } from '@/components/feed/AuthorHeader';
 import { FeedErrorState } from '@/components/feed/FeedErrorState';
-import { PaperPlaneIcon } from '@/components/icons/PaperPlaneIcon';
+import { CommentComposer } from '@/components/post/CommentComposer';
 import { AnimatedLikeButton } from '@/components/post/AnimatedLikeButton';
-import { CommentItem } from '@/components/post/CommentItem';
+import { PostCommentsList } from '@/components/post/PostCommentsList';
 import { IconCounter } from '@/components/ui/IconCounter';
+import { KeyboardLiftView } from '@/components/ui/KeyboardLiftView';
 import { useAddComment } from '@/hooks/useAddComment';
 import { useComments } from '@/hooks/useComments';
 import { usePost } from '@/hooks/usePost';
 import { fontFamily } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
-
-const keyExtractor = (comment: Comment) => comment.id;
 
 const getCommentsLabel = (count: number) => {
   const mod10 = count % 10;
@@ -76,58 +69,14 @@ export default function PostDetailScreen() {
     }
   }, [comments.fetchNextPage, comments.hasNextPage, comments.isFetchingNextPage]);
 
-  const commentItemsLengthRef = useRef(commentItems.length);
-  const fetchNextCommentsRef = useRef(fetchNextComments);
-  const hasNextCommentsPageRef = useRef(comments.hasNextPage);
-  const isFetchingNextCommentsPageRef = useRef(comments.isFetchingNextPage);
-  commentItemsLengthRef.current = commentItems.length;
-  fetchNextCommentsRef.current = fetchNextComments;
-  hasNextCommentsPageRef.current = comments.hasNextPage;
-  isFetchingNextCommentsPageRef.current = comments.isFetchingNextPage;
-
-  useEffect(() => {
-    const isEmptyEnd =
-      !comments.isLoading &&
-      !comments.isFetchingNextPage &&
-      !comments.hasNextPage &&
-      commentItems.length === 0;
-
-    if (comments.isLoading || comments.hasNextPage || isEmptyEnd) {
-      setIsCommentsEndVisible(isEmptyEnd);
-    }
-  }, [
-    commentItems.length,
-    comments.hasNextPage,
-    comments.isFetchingNextPage,
-    comments.isLoading,
-  ]);
-
-  const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 1,
-  }).current;
-
-  const handleViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-      const lastVisibleIndex = viewableItems.reduce((max, item) => {
-        if (typeof item.index !== 'number') return max;
-        return Math.max(max, item.index);
-      }, -1);
-
-      if (lastVisibleIndex >= commentItemsLengthRef.current - 10) {
-        fetchNextCommentsRef.current();
-      }
-
-      const isEndVisible =
-        commentItemsLengthRef.current > 0 &&
-        lastVisibleIndex >= commentItemsLengthRef.current - 1 &&
-        !hasNextCommentsPageRef.current &&
-        !isFetchingNextCommentsPageRef.current;
-
+  const handleCommentsEndVisibleChange = useCallback(
+    (isVisible: boolean) => {
       setIsCommentsEndVisible((current) =>
-        current === isEndVisible ? current : isEndVisible,
+        current === isVisible ? current : isVisible,
       );
     },
-  ).current;
+    [],
+  );
 
   const handleSubmit = () => {
     const trimmed = text.trim();
@@ -136,25 +85,6 @@ export default function PostDetailScreen() {
       onSuccess: () => setText(''),
     });
   };
-
-  const renderItem: ListRenderItem<Comment> = useCallback(
-    ({ item }) => (
-      <View style={styles.commentItem}>
-        <CommentItem comment={item} />
-      </View>
-    ),
-    [],
-  );
-
-  const renderCommentsFooter = useCallback(
-    () =>
-      comments.isFetchingNextPage ? (
-        <View style={styles.commentsFooter}>
-          <ActivityIndicator color={t.color.textMuted} />
-        </View>
-      ) : null,
-    [comments.isFetchingNextPage, t.color.textMuted],
-  );
 
   if (post.isLoading) {
     return (
@@ -187,10 +117,7 @@ export default function PostDetailScreen() {
       edges={['top', 'bottom']}
       style={[styles.flex, { backgroundColor: t.color.bgMuted }]}
     >
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+      <View style={styles.flex}>
         <View style={[styles.nav, { backgroundColor: t.color.bgMuted }]}>
           <Pressable
             onPress={() => router.back()}
@@ -207,18 +134,18 @@ export default function PostDetailScreen() {
           <View style={styles.back} />
         </View>
 
-        <FlatList
-          data={commentItems}
-          keyExtractor={keyExtractor}
-          renderItem={renderItem}
-          onViewableItemsChanged={handleViewableItemsChanged}
-          viewabilityConfig={viewabilityConfig}
-          removeClippedSubviews={false}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.list}
-          style={[styles.commentsList, { backgroundColor: t.color.bgMuted }]}
-          ListHeaderComponent={
-            <View style={[styles.post, { backgroundColor: t.color.surface }]}>
+        <PostCommentsList
+          comments={commentItems}
+          commentsTitle={commentsTitle}
+          commentsSort={commentsSort}
+          isLoading={comments.isLoading}
+          isFetchingNextPage={comments.isFetchingNextPage}
+          hasNextPage={comments.hasNextPage}
+          onToggleSort={handleToggleCommentsSort}
+          onLoadMore={fetchNextComments}
+          onEndVisibleChange={handleCommentsEndVisibleChange}
+          header={
+            <>
               <View style={styles.postHeader}>
                 <AuthorHeader author={currentPost.author} />
               </View>
@@ -255,80 +182,20 @@ export default function PostDetailScreen() {
                 />
                 <IconCounter kind="comment" count={currentPost.commentsCount} />
               </View>
-
-              <View style={styles.sectionHead}>
-                <Text style={styles.sectionTitle}>{commentsTitle}</Text>
-                <Pressable
-                  onPress={handleToggleCommentsSort}
-                  hitSlop={8}
-                  style={({ pressed }) => pressed && { opacity: 0.6 }}
-                  accessibilityRole="button"
-                >
-                  <Text style={styles.sortText}>
-                    {commentsSort === 'new' ? 'Сначала новые' : 'Сначала старые'}
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
+            </>
           }
-          ListEmptyComponent={
-            comments.isLoading ? (
-              <View style={[styles.commentsLoading, styles.commentsEnd]}>
-                <ActivityIndicator color={t.color.textMuted} />
-              </View>
-            ) : (
-              <Text
-                style={[
-                  styles.empty,
-                  styles.commentsEnd,
-                  { color: t.color.textMuted },
-                ]}
-              >
-                Комментариев пока нет
-              </Text>
-            )
-          }
-          ListFooterComponent={renderCommentsFooter}
         />
 
-        <View
-          style={[
-            styles.composer,
-            isCommentsEndVisible && styles.composerAtCommentsEnd,
-            { backgroundColor: t.color.surface },
-          ]}
-        >
-          <TextInput
+        <KeyboardLiftView>
+          <CommentComposer
             value={text}
             onChangeText={setText}
-            placeholder="Ваш комментарий"
-            placeholderTextColor={t.color.textMuted}
-            multiline
-            maxLength={500}
-            style={[
-              styles.input,
-              { backgroundColor: t.color.surface, color: t.color.text },
-            ]}
+            onSubmit={handleSubmit}
+            isPending={addComment.isPending}
+            separatedFromComments={isCommentsEndVisible}
           />
-          <Pressable
-            onPress={handleSubmit}
-            disabled={!text.trim() || addComment.isPending}
-            style={({ pressed }) => [
-              styles.send,
-              (!text.trim() || addComment.isPending) && { opacity: 0.45 },
-              pressed && { opacity: 0.75 },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel="Отправить комментарий"
-          >
-            {addComment.isPending ? (
-              <ActivityIndicator color={t.color.accent} />
-            ) : (
-              <PaperPlaneIcon size={30} />
-            )}
-          </Pressable>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardLiftView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -362,19 +229,6 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bold,
     fontSize: 16,
     lineHeight: 22,
-  },
-  list: {
-    paddingBottom: 8,
-  },
-  commentsList: {
-    overflow: 'hidden',
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-  },
-  post: {
-    overflow: 'hidden',
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
   },
   postHeader: {
     paddingHorizontal: 16,
@@ -418,82 +272,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 16,
-  },
-  sectionHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  sectionTitle: {
-    flex: 1,
-    fontFamily: fontFamily.semibold,
-    fontSize: 15,
-    lineHeight: 20,
-    color: '#68727D',
-  },
-  sortText: {
-    fontFamily: fontFamily.medium,
-    fontSize: 15,
-    lineHeight: 20,
-    color: '#6115CD',
-  },
-  commentItem: {
-    backgroundColor: '#FFFFFF',
-  },
-  commentsEnd: {
-    overflow: 'hidden',
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-  },
-  commentsLoading: {
-    paddingVertical: 24,
-    backgroundColor: '#FFFFFF',
-  },
-  commentsFooter: {
-    alignItems: 'center',
-    paddingVertical: 24,
-    backgroundColor: '#FFFFFF',
-  },
-  empty: {
-    paddingHorizontal: 16,
-    paddingVertical: 22,
-    textAlign: 'center',
-    fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
-    backgroundColor: '#FFFFFF',
-  },
-  composer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 10,
-    paddingHorizontal: 12,
-    paddingTop: 10,
-    paddingBottom: 10,
-  },
-  composerAtCommentsEnd: {
-    marginTop: 8,
-  },
-  input: {
-    flex: 1,
-    minHeight: 42,
-    maxHeight: 110,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#EFF2F7',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  send: {
-    width: 42,
-    height: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
