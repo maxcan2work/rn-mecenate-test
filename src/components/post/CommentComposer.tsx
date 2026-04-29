@@ -6,7 +6,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
 import Svg, { Path } from 'react-native-svg';
 import Animated, {
   interpolateColor,
@@ -16,6 +15,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { fontFamily } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
+import { triggerSelectionHaptic } from '@/utils/haptics';
 
 interface Props {
   value: string;
@@ -70,7 +70,7 @@ export const CommentComposer = ({
   const hasText = Boolean(value.trim());
   const isDisabled = !hasText || isPending;
   const handleSubmitPress = () => {
-    Haptics.selectionAsync().catch(() => {});
+    triggerSelectionHaptic();
     onSubmit();
   };
 

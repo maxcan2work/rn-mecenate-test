@@ -1,5 +1,4 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
-import * as Haptics from 'expo-haptics';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -11,6 +10,7 @@ import { useLikePost } from '@/hooks/useLikePost';
 import { fontFamily } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
 import { formatCount } from '@/utils/formatDate';
+import { triggerSelectionHaptic } from '@/utils/haptics';
 
 interface Props {
   postId: string;
@@ -28,7 +28,7 @@ export const AnimatedLikeButton = ({ postId, count, active }: Props) => {
   }));
 
   const handlePress = () => {
-    Haptics.selectionAsync().catch(() => {});
+    triggerSelectionHaptic();
     scale.value = withSequence(withSpring(1.14), withSpring(1));
     like.mutate();
   };

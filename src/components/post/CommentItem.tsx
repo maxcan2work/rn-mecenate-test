@@ -1,6 +1,5 @@
 import { memo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import * as Haptics from 'expo-haptics';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -12,6 +11,7 @@ import { HeartIcon } from '@/components/icons/HeartIcon';
 import { Avatar } from '@/components/ui/Avatar';
 import { fontFamily } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
+import { triggerSelectionHaptic } from '@/utils/haptics';
 
 const CommentItemInner = ({ comment }: { comment: Comment }) => {
   const t = useTheme();
@@ -25,7 +25,7 @@ const CommentItemInner = ({ comment }: { comment: Comment }) => {
   const handleLike = () => {
     scale.value = withSequence(withSpring(1.14), withSpring(1));
     setLiked((current) => !current);
-    Haptics.selectionAsync().catch(() => {});
+    triggerSelectionHaptic();
   };
 
   const likeColor = liked ? t.color.like : t.color.iconMuted;

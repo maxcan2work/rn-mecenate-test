@@ -16,7 +16,7 @@ import { AuthorHeader } from '@/components/feed/AuthorHeader';
 import { FeedErrorState } from '@/components/feed/FeedErrorState';
 import { CommentComposer } from '@/components/post/CommentComposer';
 import { AnimatedLikeButton } from '@/components/post/AnimatedLikeButton';
-import { PaidPostCoverOverlay } from '@/components/post/PaidPostCoverOverlay';
+import {  PaidPostCoverOverlay } from '@/components/post/PaidPostCoverOverlay';
 import { PaidPostTextPlaceholder } from '@/components/post/PaidPostTextPlaceholder';
 import { PostCommentsList } from '@/components/post/PostCommentsList';
 import { IconCounter } from '@/components/ui/IconCounter';

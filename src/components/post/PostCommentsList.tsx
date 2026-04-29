@@ -12,6 +12,7 @@ import {
 import type { Comment, CommentsSort } from '@/api/types';
 import { fontFamily } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
+import { triggerSelectionHaptic } from '@/utils/haptics';
 import { CommentItem } from './CommentItem';
 
 interface Props {
@@ -118,6 +119,11 @@ export const PostCommentsList = ({
     [isFetchingNextPage, t.color.textMuted],
   );
 
+  const handleToggleSortPress = useCallback(() => {
+    triggerSelectionHaptic();
+    onToggleSort();
+  }, [onToggleSort]);
+
   return (
     <FlatList
       ref={listRef}
@@ -137,7 +143,7 @@ export const PostCommentsList = ({
           <View style={styles.sectionHead}>
             <Text style={styles.sectionTitle}>{commentsTitle}</Text>
             <Pressable
-              onPress={onToggleSort}
+              onPress={handleToggleSortPress}
               hitSlop={8}
               style={({ pressed }) => pressed && { opacity: 0.6 }}
               accessibilityRole="button"

@@ -5,16 +5,16 @@ import {
   View,
   type GestureResponderEvent,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
 import { MoneyIcon } from '@/components/icons/MoneyIcon';
 import { fontFamily } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
+import { triggerImpactHaptic } from '@/utils/haptics';
 
 export const PaidPostCoverOverlay = () => {
   const t = useTheme();
   const handleDonatePressIn = (event: GestureResponderEvent) => {
     event.stopPropagation();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    triggerImpactHaptic();
   };
 
   const handleDonatePress = (event: GestureResponderEvent) => {

@@ -53,11 +53,14 @@ const FeedScreen = observer(() => {
     ({ item }) => (
       <PostCard
         post={item}
-        onPress={() =>
-          router.push({
-            pathname: '/posts/[id]',
-            params: { id: item.id },
-          } as unknown as Parameters<typeof router.push>[0])
+        onPress={
+          item.tier === 'paid'
+            ? undefined
+            : () =>
+                router.push({
+                  pathname: '/posts/[id]',
+                  params: { id: item.id },
+                } as unknown as Parameters<typeof router.push>[0])
         }
       />
     ),

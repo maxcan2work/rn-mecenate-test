@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
 import { patchPostEverywhere, type FeedCache } from '@/api/cache';
 import { likePost } from '@/api/posts';
 import { postQueryKey } from '@/api/queryKeys';
@@ -43,7 +42,6 @@ export const useLikePost = (postId: string) => {
       if (context.post) qc.setQueryData(postQueryKey(postId), context.post);
     },
     onSuccess: (data) => {
-      Haptics.selectionAsync().catch(() => {});
       patchPostEverywhere(qc, postId, (p: Post) => ({
         ...p,
         isLiked: data.isLiked,

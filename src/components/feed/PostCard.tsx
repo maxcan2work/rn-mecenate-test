@@ -18,14 +18,15 @@ const PostCardInner = ({ post, onPress }: Props) => {
   const t = useTheme();
   const like = useLikePost(post.id);
   const isPaid = post.tier === 'paid';
+  const Container = onPress ? Pressable : View;
 
   return (
-    <Pressable
-      onPress={onPress}
+    <Container
+      {...(onPress ? { onPress } : {})}
       style={[
         styles.card,
         {
-          backgroundColor: t.color.surface,
+        backgroundColor: t.color.surface,
         },
       ]}
     >
@@ -78,7 +79,7 @@ const PostCardInner = ({ post, onPress }: Props) => {
           <IconCounter kind="comment" count={post.commentsCount} />
         </View>
       ) : null}
-    </Pressable>
+    </Container>
   );
 };
 
