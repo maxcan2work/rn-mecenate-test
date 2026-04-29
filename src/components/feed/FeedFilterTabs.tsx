@@ -22,10 +22,12 @@ const tabs: { label: string; value: Tier | null }[] = [
 const AnimatedTabLabel = ({
   label,
   index,
+  active,
   progress,
 }: {
   label: string;
   index: number;
+  active: boolean;
   progress: SharedValue<number>;
 }) => {
   const t = useTheme();
@@ -33,12 +35,15 @@ const AnimatedTabLabel = ({
     color: interpolateColor(
       Math.min(Math.abs(progress.value - index), 1),
       [0, 1],
-      [t.color.text, t.color.textMuted],
+      [t.color.textInverse, '#57626F'],
     ),
   }));
 
   return (
-    <Animated.Text style={[styles.label, labelStyle]} numberOfLines={1}>
+    <Animated.Text
+      style={[styles.label, active ? styles.labelActive : null, labelStyle]}
+      numberOfLines={1}
+    >
       {label}
     </Animated.Text>
   );
@@ -50,7 +55,7 @@ export const FeedFilterTabs = observer(() => {
   const [trackWidth, setTrackWidth] = useState(0);
   const selectedIndex = tabs.findIndex((tab) => tab.value === ui.tierFilter);
   const progress = useSharedValue(selectedIndex === -1 ? 0 : selectedIndex);
-  const tabWidth = trackWidth > 0 ? (trackWidth - 8) / tabs.length : 0;
+  const tabWidth = trackWidth > 0 ? trackWidth / tabs.length : 0;
 
   useEffect(() => {
     progress.value = withTiming(selectedIndex === -1 ? 0 : selectedIndex, {
@@ -58,14 +63,20 @@ export const FeedFilterTabs = observer(() => {
     });
   }, [progress, selectedIndex]);
 
-  const indicatorStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: progress.value * tabWidth }],
-  }), [tabWidth]);
+  const indicatorStyle = useAnimatedStyle(
+    () => ({
+      transform: [{ translateX: progress.value * tabWidth }],
+    }),
+    [tabWidth],
+  );
 
   return (
     <View style={[styles.wrap, { backgroundColor: t.color.bgMuted }]}>
       <View
-        style={[styles.track, { backgroundColor: t.color.chipBg }]}
+        style={[
+          styles.track,
+          { backgroundColor: t.color.surface, borderColor: '#E8ECEF' },
+        ]}
         onLayout={(event) => setTrackWidth(event.nativeEvent.layout.width)}
       >
         <Animated.View
@@ -73,7 +84,7 @@ export const FeedFilterTabs = observer(() => {
           style={[
             styles.indicator,
             { width: tabWidth },
-            { backgroundColor: t.color.surface },
+            { backgroundColor: t.color.accent },
             indicatorStyle,
           ]}
         />
@@ -91,6 +102,7 @@ export const FeedFilterTabs = observer(() => {
               <AnimatedTabLabel
                 label={tab.label}
                 index={index}
+                active={active}
                 progress={progress}
               />
             </Pressable>
@@ -108,28 +120,33 @@ const styles = StyleSheet.create({
   },
   track: {
     flexDirection: 'row',
-    borderRadius: 16,
-    padding: 4,
+    height: 38,
+    borderRadius: 22,
+    borderWidth: 1,
     overflow: 'hidden',
     position: 'relative',
   },
   indicator: {
     position: 'absolute',
-    left: 4,
-    top: 4,
-    bottom: 4,
-    borderRadius: 12,
+    left: 0,
+    top: 0,
+    bottom: 0,
+    borderRadius: 22,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 36,
+    height: '100%',
+    paddingHorizontal: 10,
     borderRadius: 12,
   },
   label: {
-    fontFamily: fontFamily.semibold,
+    fontFamily: fontFamily.medium,
     fontSize: 13,
     lineHeight: 18,
+  },
+  labelActive: {
+    fontFamily: fontFamily.bold,
   },
 });
