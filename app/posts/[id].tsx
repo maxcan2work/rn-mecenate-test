@@ -14,12 +14,13 @@ import { commentsQueryKey } from '@/api/queryKeys';
 import type { CommentsSort } from '@/api/types';
 import { AuthorHeader } from '@/components/feed/AuthorHeader';
 import { FeedErrorState } from '@/components/feed/FeedErrorState';
+import { CommentIcon } from '@/components/icons/CommentIcon';
 import { CommentComposer } from '@/components/post/CommentComposer';
 import { AnimatedLikeButton } from '@/components/post/AnimatedLikeButton';
-import {  PaidPostCoverOverlay } from '@/components/post/PaidPostCoverOverlay';
+import { PaidPostCoverOverlay } from '@/components/post/PaidPostCoverOverlay';
 import { PaidPostTextPlaceholder } from '@/components/post/PaidPostTextPlaceholder';
 import { PostCommentsList } from '@/components/post/PostCommentsList';
-import { IconCounter } from '@/components/ui/IconCounter';
+import { ActionCounterButton } from '@/components/ui/ActionCounterButton';
 import { KeyboardLiftView } from '@/components/ui/KeyboardLiftView';
 import { useAddComment } from '@/hooks/useAddComment';
 import { useComments } from '@/hooks/useComments';
@@ -193,7 +194,11 @@ export default function PostDetailScreen() {
                     count={currentPost.likesCount}
                     active={currentPost.isLiked}
                   />
-                  <IconCounter kind="comment" count={currentPost.commentsCount} />
+                  <ActionCounterButton
+                    count={currentPost.commentsCount}
+                    renderIcon={(color) => <CommentIcon size={22} color={color} />}
+                    accessibilityLabel="Комментарии"
+                  />
                 </View>
               ) : null}
             </>

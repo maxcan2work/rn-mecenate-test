@@ -2,12 +2,14 @@ import { Image } from 'expo-image';
 import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Post } from '@/api/types';
+import { CommentIcon } from '@/components/icons/CommentIcon';
+import { HeartIcon } from '@/components/icons/HeartIcon';
+import { PaidPostCoverOverlay } from '@/components/post/PaidPostCoverOverlay';
+import { PaidPostTextPlaceholder } from '@/components/post/PaidPostTextPlaceholder';
+import { ActionCounterButton } from '@/components/ui/ActionCounterButton';
 import { useLikePost } from '@/hooks/useLikePost';
 import { useTheme } from '@/theme/ThemeProvider';
 import { AuthorHeader } from './AuthorHeader';
-import { IconCounter } from '@/components/ui/IconCounter';
-import { PaidPostCoverOverlay } from '@/components/post/PaidPostCoverOverlay';
-import { PaidPostTextPlaceholder } from '@/components/post/PaidPostTextPlaceholder';
 
 interface Props {
   post: Post;
@@ -26,7 +28,7 @@ const PostCardInner = ({ post, onPress }: Props) => {
       style={[
         styles.card,
         {
-        backgroundColor: t.color.surface,
+          backgroundColor: t.color.surface,
         },
       ]}
     >
@@ -68,14 +70,22 @@ const PostCardInner = ({ post, onPress }: Props) => {
 
       {!isPaid ? (
         <View style={styles.footer}>
-          <IconCounter
-            kind="heart"
+          <ActionCounterButton
             count={post.likesCount}
             active={post.isLiked}
+            renderIcon={(color) => (
+              <HeartIcon size={22} color={color} filled={post.isLiked} />
+            )}
             onPress={() => like.mutate()}
             disabled={like.isPending}
+            accessibilityLabel="Лайк"
           />
-          <IconCounter kind="comment" count={post.commentsCount} />
+          <ActionCounterButton
+            count={post.commentsCount}
+            renderIcon={(color) => <CommentIcon size={22} color={color} />}
+            onPress={onPress}
+            accessibilityLabel="Комментарии"
+          />
         </View>
       ) : null}
     </Container>
