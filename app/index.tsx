@@ -60,7 +60,7 @@ const FeedScreen = observer(() => {
                 router.push({
                   pathname: '/posts/[id]',
                   params: { id: item.id },
-                } as unknown as Parameters<typeof router.push>[0])
+                })
         }
       />
     ),

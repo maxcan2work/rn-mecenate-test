@@ -4,7 +4,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
   StyleSheet,
   Text,
   View,
@@ -21,6 +20,7 @@ import { PaidPostCoverOverlay } from '@/components/post/PaidPostCoverOverlay';
 import { PaidPostTextPlaceholder } from '@/components/post/PaidPostTextPlaceholder';
 import { PostCommentsList } from '@/components/post/PostCommentsList';
 import { ActionCounterButton } from '@/components/ui/ActionCounterButton';
+import { AppNavBar } from '@/components/ui/AppNavBar';
 import { KeyboardLiftView } from '@/components/ui/KeyboardLiftView';
 import { useAddComment } from '@/hooks/useAddComment';
 import { useComments } from '@/hooks/useComments';
@@ -117,6 +117,7 @@ export default function PostDetailScreen() {
 
   const currentPost = post.data;
   const isPaid = currentPost.tier === 'paid';
+  const postTitle = currentPost.title.trim() || 'Детальный пост';
   const commentsTitle = `${currentPost.commentsCount} ${getCommentsLabel(
     currentPost.commentsCount,
   )}`;
@@ -127,21 +128,7 @@ export default function PostDetailScreen() {
       style={[styles.flex, { backgroundColor: t.color.bgMuted }]}
     >
       <View style={styles.flex}>
-        <View style={[styles.nav, { backgroundColor: t.color.bgMuted }]}>
-          <Pressable
-            onPress={() => router.back()}
-            hitSlop={10}
-            style={({ pressed }) => [styles.back, pressed && { opacity: 0.6 }]}
-            accessibilityRole="button"
-            accessibilityLabel="Назад"
-          >
-            <Text style={[styles.backText, { color: t.color.text }]}>‹</Text>
-          </Pressable>
-          <Text style={[styles.navTitle, { color: t.color.text }]}>
-            Детальный пост
-          </Text>
-          <View style={styles.back} />
-        </View>
+        <AppNavBar title={postTitle} onBackPress={() => router.back()} />
 
         <PostCommentsList
           comments={commentItems}
@@ -224,30 +211,6 @@ const styles = StyleSheet.create({
   center: {
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  nav: {
-    minHeight: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-  },
-  back: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backText: {
-    fontFamily: fontFamily.regular,
-    fontSize: 34,
-    lineHeight: 36,
-  },
-  navTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontFamily: fontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
   },
   postHeader: {
     paddingHorizontal: 16,
