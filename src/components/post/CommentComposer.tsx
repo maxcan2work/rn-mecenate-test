@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   StyleSheet,
   TextInput,
@@ -133,12 +134,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 2,
     borderColor: '#EFF2F7',
-    paddingHorizontal: 14,
-    paddingVertical: 0,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     fontFamily: fontFamily.regular,
     fontSize: 14,
     lineHeight: 20,
-    textAlignVertical: 'center',
   },
   send: {
     width: 42,

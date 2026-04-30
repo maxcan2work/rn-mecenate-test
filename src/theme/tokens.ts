@@ -12,7 +12,7 @@ export const tokens = {
     surface: '#FFFFFF',
     border: '#E6E8EC',
     text: '#111416',
-    textMuted: '#57626F',
+    textMuted: '#A4AAB0',
     textInverse: '#FFFFFF',
     accent: '#6115CD',
     accentPressed: '#4F11A8',
