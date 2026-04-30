@@ -1,147 +1,161 @@
-# Mecenate — Feed (Test Assignment)
+# Mecenate App
 
-Экран ленты публикаций для платформы Mecenate (аналог Patreon/Boosty). React Native + Expo, iOS и Android.
+React Native + Expo приложение для ленты постов Mecenate с бесплатным/платным контентом, деталями поста, лайками и комментариями.
 
-## Быстрый просмотр (без локальной сборки)
+## Быстрый просмотр
 
-Приложение опубликовано через **EAS Update**. Чтобы открыть:
+Актуальная версия опубликована через **EAS Update**.
 
-1. Установи [**Expo Go**](https://expo.dev/go) (App Store / Google Play).
-2. Открой [**preview-ссылку**](https://expo.dev/preview/update?message=v4%3A+hosted+icon+URL&updateRuntimeVersion=1.0.0&createdAt=2026-04-22T19%3A47%3A27.216Z&slug=exp&projectId=e5931f70-f802-498f-b93d-ef7a5cf30914&group=4d2c958a-ff6d-4d92-a4c0-f438d1807671) с телефона — она запустит приложение в Expo Go.
-3. Или сканируй QR (iOS — камерой, Android — сканером внутри Expo Go):
+1. Установи [Expo Go](https://expo.dev/go).
+2. Открой preview-ссылку с телефона:
+   <https://expo.dev/preview/update?message=v2.0&updateRuntimeVersion=2.0.1&createdAt=2026-04-30T01%3A25%3A12.844Z&slug=exp&projectId=e5931f70-f802-498f-b93d-ef7a5cf30914&group=1be9ca07-83cf-4eb9-8bb6-906c01b2257b>
+3. Или сканируй QR:
 
 <p align="center">
   <img src="./assets/eas-update-qr.svg" alt="EAS Update QR" width="260" />
 </p>
 
-Страница апдейта в Expo: <https://expo.dev/accounts/realmizzer/projects/mecenate-app/updates/4d2c958a-ff6d-4d92-a4c0-f438d1807671>.
+Deep link для Expo Go:
+
+```text
+exp://u.expo.dev/e5931f70-f802-498f-b93d-ef7a5cf30914/group/1be9ca07-83cf-4eb9-8bb6-906c01b2257b
+```
 
 ## Стек
 
-- **TypeScript** (strict)
-- **Expo SDK 54** + **expo-router** (file-based routing)
-- **React Query** (`@tanstack/react-query`) — server state, курсорная пагинация, оптимистичные мутации
-- **MobX** + **mobx-react-lite** — auth-токен, UI-настройки (клиентский стейт)
-- **axios** + **AsyncStorage** — HTTP-клиент, персист UUID-токена
-- **expo-image** — кешированные изображения
-- **react-native-reanimated** + **expo-haptics** — анимированный лайк и tactile feedback
-- **react-native-svg** — иконки лайка и комментария
-- **react-native-safe-area-context** — safe area
+- **Expo SDK 54**, **React Native 0.81**, **React 19**, **TypeScript**
+- **expo-router** для роутинга
+- **@tanstack/react-query** для server state, пагинации и мутаций
+- **MobX** для клиентского UI/auth state
+- **axios** + **AsyncStorage** для API-клиента и persisted UUID-токена
+- **expo-image** для изображений
+- **react-native-reanimated** для анимаций лайка, кнопки отправки и shimmer
+- **expo-haptics** + Android `Vibration` fallback для haptic feedback
+- **expo-blur** для платных постов
+- **react-native-svg** для иконок
 
 ## Запуск
 
 ```bash
-npm install --legacy-peer-deps
+npm install
 npx expo start
 ```
 
-> `--legacy-peer-deps` нужен из-за несовпадения peer-dep версий React 19 в зависимостях expo-router (внутренние transitive deps @radix-ui/react-navigation-menu).
-> Expo CLI стоит запускать на Node LTS (20/22). На локальном Node 24.2.0 CLI падает при поиске порта с `ERR_SOCKET_BAD_PORT`.
+Проверка типов:
 
-### Переменные окружения
-
+```bash
+npm run typecheck
 ```
+
+### API
+
+Дефолтный API уже задан в `src/api/client.ts`.
+
+```bash
 EXPO_PUBLIC_API_URL=https://k8s.mectest.ru/test-app
 ```
 
-Параметр опциональный — дефолт уже зашит в `src/api/client.ts`. См. `.env.example`.
+Auth-токен генерируется на клиенте как UUID, сохраняется в AsyncStorage и отправляется как `Authorization: Bearer <uuid>`.
 
 ## Что реализовано
 
-- **Лента постов** с курсорной пагинацией (`useInfiniteQuery`, `onEndReached`, `hasMore` / `nextCursor`).
-- **Pull-to-refresh** (`RefreshControl` + `refetch`).
-- **Paid-посты** (`tier === 'paid'`) — заглушка «Доступно подписчикам» вместо тела.
-- **Экран ошибки** — маскот + «Не удалось загрузить публикации» + кнопка «Повторить» (при попытке — спиннер в кнопке, под заголовком — причина ошибки).
-- **Скелетон** первой загрузки, повторяющий геометрию реальной карточки (без «прыжка» при переходе).
-- **Футер-лоадер** при подгрузке следующих страниц.
-- **Лайки** — оптимистичный апдейт кеша RQ, откат при ошибке. В liked-состоянии чип меняет фон на `#FF2B75`, сердце заливается `#FFEAF1`.
-- **Фильтр ленты** — табы «Все / Бесплатные / Платные» над списком.
-- **Платный пост** — контент карточки перекрывается затемняющим blackout-оверлеем.
-- **Детальный экран поста** — открывается по нажатию на карточку, показывает полный пост, обложку, автора, лайки и комментарии.
-- **Комментарии** — lazy load, поле ввода и отправка нового комментария.
-- **Real-time** — WebSocket `/ws?token=<uuid>` обновляет лайки и добавляет новые комментарии без ручной перезагрузки.
-- **Анимированный лайк** — Reanimated spring-анимация счётчика/иконки + haptic feedback.
-- **Auth**: UUID генерируется при первом запуске, сохраняется в AsyncStorage (`@react-native-async-storage`), подставляется как `Bearer` axios-интерсептором. Перезапуск приложения — токен тот же, серверный стейт (лайки) сохраняется.
-- **Design tokens**: централизованы в `src/theme/tokens.ts` (цвета, spacing, radii, typography), пробрасываются через `ThemeProvider`.
+- Лента постов с cursor-пагинацией, pull-to-refresh и footer-loader.
+- Фильтр ленты по категориям: все, бесплатные, платные.
+- Haptic feedback на лайки, комментарии, отправку комментария, донат и переключение категорий/сортировки.
+- Карточка поста с автором, обложкой, текстом, лайками и количеством комментариев.
+- Платные посты без перехода в детали: изображение сильно заблюрено через `expo-blur`, поверх blackout, `MoneyIcon`, текст о скрытом контенте и кнопка доната.
+- Для платных постов title/body скрыты shimmer-плейсхолдерами.
+- Детальный экран поста с динамическим заголовком в кастомном `AppNavBar`.
+- Комментарии вынесены в отдельный список, подгружаются по страницам, сортируются через повторную загрузку первой страницы.
+- Поле ввода комментария вынесено в `CommentComposer`, отправляет комментарий на backend.
+- Универсальный `KeyboardLiftView` поднимает composer над клавиатурой.
+- Real-time обновления через WebSocket: лайки и новые комментарии попадают в React Query cache.
+- Централизованные дизайн-токены в `src/theme/tokens.ts`.
+
+## Сборки и updates
+
+Опубликовать OTA update:
+
+```bash
+eas update --branch preview --message "v2.0"
+```
+
+Собрать preview-билды:
+
+```bash
+eas build --platform all --profile preview
+```
+
+Android preview отдаёт `.apk`. iOS preview отдаёт `.ipa`, но для него нужны Apple Developer credentials.
+
+Последний Android APK:
+
+```text
+https://expo.dev/artifacts/eas/nwJhJatoWSSxBkeXVhAKSN.apk
+```
+
+Важно: `eas update` обновляет только JS/assets. Нативные изменения вроде `softwareKeyboardLayoutMode`, permissions, новых native dependencies и runtimeVersion требуют нового `eas build`.
 
 ## Структура
 
-```
+```text
 app/
-  _layout.tsx              # expo-router root: шрифты + AppProviders + Stack
-  index.tsx                # Feed screen (observer)
+  _layout.tsx              # root layout, шрифты, providers, Stack
+  index.tsx                # экран ленты
+  posts/[id].tsx           # детальный экран поста
 assets/
-  mascot.png               # маскот аксолотля для экрана ошибки
+  eas-update-qr.svg        # QR актуального EAS Update
 src/
   api/
-    client.ts              # axios instance + Bearer interceptor + unwrap envelope
-    posts.ts               # getPosts, likePost, getComments, addComment
-    types.ts               # Post, Author, PostsResponse, ApiEnvelope<T>
-  hooks/
-    useFeed.ts             # useInfiniteQuery с курсором
-    useLikePost.ts         # useMutation + optimistic update кеша
-  stores/
-    AuthStore.ts           # UUID + AsyncStorage persistence
-    UIStore.ts             # tier-фильтр, simulateError-тогл
-    RootStore.ts + context # Provider + useStores()
-  providers/
-    AppProviders.tsx       # QueryClient + Stores + Theme + SafeAreaProvider
+    client.ts              # axios instance + Bearer interceptor
+    posts.ts               # posts/comments API
+    cache.ts               # helpers для обновления React Query cache
+    queryKeys.ts
+    types.ts
   components/
     icons/
-      HeartIcon.tsx        # outline/filled сердце
-      CommentIcon.tsx      # облачко коммента
+      CommentIcon.tsx
+      HeartIcon.tsx
+      MoneyIcon.tsx
     feed/
-      PostCard.tsx         # карточка поста
-      AuthorHeader.tsx     # аватар + имя
-      PaidPostLock.tsx     # заглушка paid
-      FeedErrorState.tsx   # экран ошибки с маскотом
-      FeedSkeleton.tsx     # плейсхолдер первой загрузки
-      FeedFooter.tsx       # лоадер подгрузки
+      FeedFilterTabs.tsx
+      PostCard.tsx
+      FeedSkeleton.tsx
+      FeedErrorState.tsx
+    post/
+      AnimatedLikeButton.tsx
+      CommentComposer.tsx
+      CommentItem.tsx
+      PaidPostCoverOverlay.tsx
+      PaidPostTextPlaceholder.tsx
+      PostCommentsList.tsx
     ui/
-      Avatar.tsx           # аватар с инициалами-fallback
-      IconCounter.tsx      # чип с иконкой + счётчиком (лайк/коммент)
+      ActionCounterButton.tsx
+      AppNavBar.tsx
+      Avatar.tsx
+      KeyboardLiftView.tsx
+      ShimmerPlaceholder.tsx
+  hooks/
+    useAddComment.ts
+    useComments.ts
+    useFeed.ts
+    useLikePost.ts
+    usePost.ts
+    useRealtimePosts.ts
+  stores/
+    AuthStore.ts
+    UIStore.ts
   theme/
-    tokens.ts              # цвета, spacing, radii, typography, fontFamily
+    tokens.ts
     ThemeProvider.tsx
   utils/
-    formatDate.ts          # relative дата, formatCount
+    formatDate.ts
+    haptics.ts
 ```
-
-## API
-
-- Base URL: `https://k8s.mectest.ru/test-app`
-- Swagger: `/openapi.json`
-- Auth: `Authorization: Bearer <uuid>`
-
-Все ответы обёрнуты в envelope:
-```json
-{ "ok": true,  "data": { /* payload */ } }
-{ "ok": false, "error": { "code": "...", "message": "..." } }
-```
-
-В `src/api/posts.ts` payload разворачивается хелпером `unwrap()` — наверх отдаются «чистые» модели.
-
-Используемые эндпоинты:
-- `GET /posts?limit&cursor&tier&simulate_error` — лента с курсорной пагинацией (поле ответа: `posts`, `nextCursor`, `hasMore`).
-- `POST /posts/{id}/like` — тогл лайка (возвращает `isLiked`, `likesCount`).
-
-## Проверка вручную
-
-- **Пагинация**: скролл вниз → в URL уходит `cursor=…`, приходят новые посты.
-- **Pull-to-refresh**: тянем список вниз → данные перезапрашиваются с первого курсора.
-- **Paid-пост**: среди постов встречается `tier: "paid"` → вместо текста показывается замок + «Доступно подписчикам».
-- **Экран ошибки**: airplane mode → перезапуск → маскот + «Не удалось загрузить публикации». Нажатие «Повторить» пробует заново, на кнопке крутится спиннер.
-- **Симуляция 500**: у API есть флаг `simulate_error=true` — можно временно передать `simulateError: true` в `useFeed` или переключить через `UIStore.toggleSimulateError()`.
-- **Лайк**: тап по сердцу — чип сразу становится розовым, счётчик увеличивается. При сетевой ошибке — откат.
-
-## Что можно доработать
-
-- **Юнит-тесты**.
-- **Детальный экран поста** и **поиск**.
-- **React 19 + expo-router**: в зависимостях expo-router пока есть конфликты peer-deps (@radix-ui). Решается флагом `--legacy-peer-deps` при `npm install`.
 
 ## Скрипты
 
 - `npm start` / `npx expo start` — dev-server.
-- `npm run ios` / `npm run android` — запуск в симуляторе.
-- `npm run typecheck` — `tsc --noEmit`.
+- `npm run ios` — запуск на iOS simulator.
+- `npm run android` — запуск на Android emulator.
+- `npm run typecheck` — TypeScript check.
