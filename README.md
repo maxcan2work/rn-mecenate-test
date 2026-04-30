@@ -8,7 +8,7 @@ React Native + Expo приложение для ленты постов Mecenate
 
 1. Установи [Expo Go](https://expo.dev/go).
 2. Открой preview-ссылку с телефона:
-   <https://expo.dev/preview/update?message=v2.0&updateRuntimeVersion=2.0.1&createdAt=2026-04-30T01%3A25%3A12.844Z&slug=exp&projectId=e5931f70-f802-498f-b93d-ef7a5cf30914&group=1be9ca07-83cf-4eb9-8bb6-906c01b2257b>
+   <https://expo.dev/preview/update?message=v2.0.2&updateRuntimeVersion=2.0.2&createdAt=2026-04-30T01%3A59%3A14.828Z&slug=exp&projectId=e5931f70-f802-498f-b93d-ef7a5cf30914&group=a667ec26-782a-4f26-8dc0-3146df2e8702>
 3. Или сканируй QR:
 
 <p align="center">
@@ -18,7 +18,7 @@ React Native + Expo приложение для ленты постов Mecenate
 Deep link для Expo Go:
 
 ```text
-exp://u.expo.dev/e5931f70-f802-498f-b93d-ef7a5cf30914/group/1be9ca07-83cf-4eb9-8bb6-906c01b2257b
+exp://u.expo.dev/e5931f70-f802-498f-b93d-ef7a5cf30914/group/a667ec26-782a-4f26-8dc0-3146df2e8702
 ```
 
 ## Стек
@@ -70,31 +70,8 @@ Auth-токен генерируется на клиенте как UUID, сох
 - Поле ввода комментария вынесено в `CommentComposer`, отправляет комментарий на backend.
 - Универсальный `KeyboardLiftView` поднимает composer над клавиатурой.
 - Real-time обновления через WebSocket: лайки и новые комментарии попадают в React Query cache.
+- Android back-кнопка на главной ленте сначала сбрасывает фильтр на `Все`, а при повторном нажатии показывает подтверждение выхода и закрывает приложение только после второго нажатия.
 - Централизованные дизайн-токены в `src/theme/tokens.ts`.
-
-## Сборки и updates
-
-Опубликовать OTA update:
-
-```bash
-eas update --branch preview --message "v2.0"
-```
-
-Собрать preview-билды:
-
-```bash
-eas build --platform all --profile preview
-```
-
-Android preview отдаёт `.apk`. iOS preview отдаёт `.ipa`, но для него нужны Apple Developer credentials.
-
-Последний Android APK:
-
-```text
-https://expo.dev/artifacts/eas/nwJhJatoWSSxBkeXVhAKSN.apk
-```
-
-Важно: `eas update` обновляет только JS/assets. Нативные изменения вроде `softwareKeyboardLayoutMode`, permissions, новых native dependencies и runtimeVersion требуют нового `eas build`.
 
 ## Структура
 
