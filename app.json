@@ -3,7 +3,7 @@
     "name": "Mecenate",
     "slug": "mecenate-app",
     "scheme": "mecenate",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "orientation": "portrait",
     "icon": "https://raw.githubusercontent.com/maxcan2work/rn-mecenate-test/main/assets/icon.png",
     "userInterfaceStyle": "light",
