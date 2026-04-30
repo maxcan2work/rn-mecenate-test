@@ -8,7 +8,7 @@ React Native + Expo приложение для ленты постов Mecenate
 
 1. Установи [Expo Go](https://expo.dev/go).
 2. Открой preview-ссылку с телефона:
-   <https://expo.dev/preview/update?message=v2.0.2&updateRuntimeVersion=2.0.2&createdAt=2026-04-30T01%3A59%3A14.828Z&slug=exp&projectId=e5931f70-f802-498f-b93d-ef7a5cf30914&group=a667ec26-782a-4f26-8dc0-3146df2e8702>
+   <https://expo.dev/preview/update?message=v2.0.2hotfix1&updateRuntimeVersion=2.0.2&createdAt=2026-04-30T02%3A20%3A22.466Z&slug=exp&projectId=e5931f70-f802-498f-b93d-ef7a5cf30914&group=b6179ad5-7a3a-40a8-9377-be29c0a3ece2>
 3. Или сканируй QR:
 
 <p align="center">
@@ -18,7 +18,7 @@ React Native + Expo приложение для ленты постов Mecenate
 Deep link для Expo Go:
 
 ```text
-exp://u.expo.dev/e5931f70-f802-498f-b93d-ef7a5cf30914/group/a667ec26-782a-4f26-8dc0-3146df2e8702
+exp+://expo-development-client/?url=https%3A%2F%2Fu.expo.dev%2Fe5931f70-f802-498f-b93d-ef7a5cf30914%2Fgroup%2Fb6179ad5-7a3a-40a8-9377-be29c0a3ece2
 ```
 
 ## Стек
