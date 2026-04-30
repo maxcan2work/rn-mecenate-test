@@ -1,17 +1,14 @@
 import { Platform, Vibration } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
-const triggerAndroidHaptic = (
-  type: Haptics.AndroidHaptics,
-  durationMs: number,
-) => {
-  Haptics.performAndroidHapticsAsync(type).catch(() => {});
+const triggerAndroidHaptic = (durationMs: number) => {
+  Vibration.cancel();
   Vibration.vibrate(durationMs);
 };
 
 export const triggerSelectionHaptic = () => {
   if (Platform.OS === 'android') {
-    triggerAndroidHaptic(Haptics.AndroidHaptics.Keyboard_Tap, 35);
+    triggerAndroidHaptic(55);
     return;
   }
 
@@ -20,7 +17,7 @@ export const triggerSelectionHaptic = () => {
 
 export const triggerImpactHaptic = () => {
   if (Platform.OS === 'android') {
-    triggerAndroidHaptic(Haptics.AndroidHaptics.Context_Click, 45);
+    triggerAndroidHaptic(70);
     return;
   }
 
@@ -29,7 +26,7 @@ export const triggerImpactHaptic = () => {
 
 export const triggerSuccessHaptic = () => {
   if (Platform.OS === 'android') {
-    triggerAndroidHaptic(Haptics.AndroidHaptics.Confirm, 55);
+    triggerAndroidHaptic(90);
     return;
   }
 

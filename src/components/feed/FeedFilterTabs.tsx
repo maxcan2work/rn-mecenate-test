@@ -12,6 +12,7 @@ import type { Tier } from '@/api/types';
 import { useStores } from '@/stores/context';
 import { fontFamily } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
+import { triggerSelectionHaptic } from '@/utils/haptics';
 
 const tabs: { label: string; value: Tier | null }[] = [
   { label: 'Все', value: null },
@@ -94,7 +95,12 @@ export const FeedFilterTabs = observer(() => {
           return (
             <Pressable
               key={tab.label}
-              onPress={() => ui.setTierFilter(tab.value)}
+              onPress={() => {
+                if (active) return;
+
+                triggerSelectionHaptic();
+                ui.setTierFilter(tab.value);
+              }}
               style={styles.tab}
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
