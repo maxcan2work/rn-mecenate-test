@@ -45,7 +45,7 @@ const PostCardInner = ({ post, onPress }: Props) => {
               contentFit="cover"
               transition={200}
             />
-            {isPaid ? <PaidPostCoverOverlay /> : null}
+            {isPaid ? <PaidPostCoverOverlay coverUrl={post.coverUrl} /> : null}
           </View>
         ) : null}
 

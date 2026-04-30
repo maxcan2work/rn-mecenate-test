@@ -1,17 +1,23 @@
 import {
+  Platform,
   Pressable,
   StyleSheet,
   Text,
   View,
-  type GestureResponderEvent, Platform,
+  type GestureResponderEvent,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
+import { Image } from 'expo-image';
 import { MoneyIcon } from '@/components/icons/MoneyIcon';
 import { fontFamily } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
 import { triggerImpactHaptic } from '@/utils/haptics';
 
-export const PaidPostCoverOverlay = () => {
+interface Props {
+  coverUrl: string;
+}
+
+export const PaidPostCoverOverlay = ({ coverUrl }: Props) => {
   const t = useTheme();
   const handleDonatePressIn = (event: GestureResponderEvent) => {
     event.stopPropagation();
@@ -24,13 +30,21 @@ export const PaidPostCoverOverlay = () => {
 
   return (
     <View style={[StyleSheet.absoluteFill, styles.overlay]}>
-      <BlurView
-        intensity={Platform.OS === 'ios' ? 50 : 10}
-        tint="default"
-        experimentalBlurMethod="dimezisBlurView"
-        blurReductionFactor={1}
-        style={StyleSheet.absoluteFill}
-      />
+      {Platform.OS === 'android' ? (
+        <Image
+          source={{ uri: coverUrl }}
+          style={styles.androidBlurredCover}
+          contentFit="cover"
+          blurRadius={28}
+          recyclingKey={coverUrl}
+        />
+      ) : (
+        <BlurView
+          intensity={50}
+          tint="default"
+          style={StyleSheet.absoluteFill}
+        />
+      )}
       <View style={[StyleSheet.absoluteFill, styles.blackout]} />
       <View style={[styles.iconWrap, { backgroundColor: t.color.accent }]}>
         <MoneyIcon size={20} />
@@ -60,6 +74,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 28,
     overflow: 'hidden',
+  },
+  androidBlurredCover: {
+    ...StyleSheet.absoluteFillObject,
+    transform: [{ scale: 1.04 }],
   },
   blackout: {
     backgroundColor: `rgba(0, 0, 0, ${Platform.OS === 'ios' ? 0.6 : 0.3})`,

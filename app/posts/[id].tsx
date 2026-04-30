@@ -155,7 +155,9 @@ export default function PostDetailScreen() {
                     contentFit="cover"
                     transition={200}
                   />
-                  {isPaid ? <PaidPostCoverOverlay /> : null}
+                  {isPaid ? (
+                    <PaidPostCoverOverlay coverUrl={currentPost.coverUrl} />
+                  ) : null}
                 </View>
               ) : null}
 
