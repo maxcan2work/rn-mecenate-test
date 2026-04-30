@@ -1,10 +1,13 @@
 import { observer } from 'mobx-react-lite';
-import { router } from 'expo-router';
-import { useCallback, useMemo } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useRef } from 'react';
 import {
+  BackHandler,
   FlatList,
+  Platform,
   RefreshControl,
   StyleSheet,
+  ToastAndroid,
   View,
   type ListRenderItem,
 } from 'react-native';
@@ -20,10 +23,12 @@ import { useStores } from '@/stores/context';
 import { useTheme } from '@/theme/ThemeProvider';
 
 const keyExtractor = (p: Post) => p.id;
+const BACK_PRESS_EXIT_INTERVAL_MS = 2000;
 
 const FeedScreen = observer(() => {
   const t = useTheme();
   const { ui } = useStores();
+  const lastBackPressAt = useRef(0);
 
   const {
     data,
@@ -48,6 +53,40 @@ const FeedScreen = observer(() => {
       fetchNextPage();
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (Platform.OS !== 'android') {
+        return undefined;
+      }
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        () => {
+          if (ui.tierFilter !== null) {
+            ui.setTierFilter(null);
+            lastBackPressAt.current = 0;
+            return true;
+          }
+
+          const now = Date.now();
+          if (now - lastBackPressAt.current < BACK_PRESS_EXIT_INTERVAL_MS) {
+            BackHandler.exitApp();
+            return true;
+          }
+
+          lastBackPressAt.current = now;
+          ToastAndroid.show(
+            'Чтобы закрыть приложение, нажмите назад ещё раз',
+            ToastAndroid.SHORT,
+          );
+          return true;
+        },
+      );
+
+      return () => subscription.remove();
+    }, [ui, ui.tierFilter]),
+  );
 
   const renderItem: ListRenderItem<Post> = useCallback(
     ({ item }) => (
