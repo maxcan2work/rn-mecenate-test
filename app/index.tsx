@@ -11,7 +11,10 @@ import {
   View,
   type ListRenderItem,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import type { Post } from '@/api/types';
 import { FeedErrorState } from '@/components/feed/FeedErrorState';
 import { FeedFilterTabs } from '@/components/feed/FeedFilterTabs';
@@ -28,6 +31,7 @@ const BACK_PRESS_EXIT_INTERVAL_MS = 2000;
 const FeedScreen = observer(() => {
   const t = useTheme();
   const { ui } = useStores();
+  const insets = useSafeAreaInsets();
   const lastBackPressAt = useRef(0);
 
   const {
@@ -132,7 +136,10 @@ const FeedScreen = observer(() => {
         data={posts}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[
+          styles.list,
+          { paddingBottom: insets.bottom + 16 },
+        ]}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         refreshControl={
