@@ -54,7 +54,7 @@ const AnimatedSendIcon = ({
   }));
 
   return (
-    <Svg width={30} height={30} viewBox="0 0 20 19" fill="none">
+    <Svg width={20} height={20} viewBox="0 0 20 19" fill="none">
       <AnimatedPath d={paperPlanePath} animatedProps={animatedProps} />
     </Svg>
   );
